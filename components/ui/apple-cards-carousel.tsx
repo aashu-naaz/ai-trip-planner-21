@@ -300,4 +300,9 @@ export const BlurImage = ({
       {...rest}
     />
   );
+<<<<<<< HEAD
 };
+=======
+};
+
+>>>>>>> 707545cc7b2c5e2bdc15b6cd70a7c299ba353812
