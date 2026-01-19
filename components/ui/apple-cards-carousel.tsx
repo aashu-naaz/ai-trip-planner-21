@@ -293,4 +293,3 @@ export const BlurImage = ({
   );
 };
 
-// i hate you
