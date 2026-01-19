@@ -272,6 +272,8 @@ export const BlurImage = ({
   src,
   className,
   alt,
+  fill, // eslint-disable-line @typescript-eslint/no-unused-vars
+  blurDataURL, // eslint-disable-line @typescript-eslint/no-unused-vars
   ...rest
 }: ImageProps) => {
   const [isLoading, setLoading] = useState(true);
@@ -279,7 +281,7 @@ export const BlurImage = ({
     <img
       className={cn(
         "h-full w-full transition duration-300",
-        isLoading ? "blur-sm" : "blur-0",
+        isLoading,
         className,
       )}
       onLoad={() => setLoading(false)}
@@ -288,7 +290,6 @@ export const BlurImage = ({
       height={height}
       loading="lazy"
       decoding="async"
-      blurDataURL={typeof src === "string" ? src : undefined}
       alt={alt ? alt : "Background of a beautiful view"}
       {...rest}
     />
