@@ -272,8 +272,8 @@ export const BlurImage = ({
   src,
   className,
   alt,
-  fill, // eslint-disable-line @typescript-eslint/no-unused-vars
-  blurDataURL, 
+  fill,
+  blurDataURL,
   ...rest
 }: ImageProps) => {
   return (
