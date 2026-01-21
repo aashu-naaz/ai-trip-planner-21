@@ -1,9 +1,11 @@
 "use client"
-import React, { useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Header from './_components/Header';
+import { usePathname } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
+import { UserDetailContext } from '@/context/UserDetailContext';
 
 function Provider({
   children,
@@ -11,7 +13,9 @@ function Provider({
   children: React.ReactNode;
 }>) {
 
+  const pathname = usePathname();
   const { user } = useUser();
+  const [userDetail, setUserDetail] = useState<any>();
   const createUser = useMutation(api.user.CreateNewUser);
 
   useEffect(() => {
@@ -27,16 +31,22 @@ function Provider({
       name: user?.fullName ?? '',
       imageUrl: user?.imageUrl ?? '',
     });
-    console.log(result);
+    setUserDetail(result);
   };
 
 
   return (
-    <div>
-      <Header />
-      {children}
-    </div>
+    <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+      <div className={pathname === '/create-new-trip' ? 'bg-[#fce7f3] min-h-screen transition-colors duration-500' : ''}>
+        <Header />
+        {children}
+      </div>
+    </UserDetailContext.Provider>
   );
 }
 
 export default Provider;
+
+export const useUserDetail = () => {
+  return useContext(UserDetailContext);
+}

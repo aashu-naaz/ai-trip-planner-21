@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { HeroVideoDialog } from '@/components/ui/hero-video-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { ArrowDown, Globe2, Landmark, Plane, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { title } from 'process';
@@ -31,14 +31,15 @@ const suggestions = [
 function Hero() {
 
     const { user } = useUser();
+    const { openSignIn } = useClerk();
     const router = useRouter();
     const onSend = () => {
         if (!user) {
-            router.push('/sign-in');
+            openSignIn();
             return;
         }
         //Navigate to Create Trip Planner Web Page
-        router.push('/create-trip');
+        router.push('/create-new-trip');
     }
     return (
         <div className='mt-24 flex justify-center'>
@@ -62,7 +63,9 @@ function Hero() {
 
                 <div className='flex gap-5'>
                     {suggestions.map((suggestions, index) => (
-                        <div key={index} className='flex items-center gap-2 border rounded-full p-2
+                        <div key={index}
+                            onClick={() => onSend()}
+                            className='flex items-center gap-2 border rounded-full p-2
                 cursor-pointer hover:bg-primary hover:text-white'>
                             {suggestions.icon}
                             <h2 className='text-sm'>{suggestions.title}</h2>
