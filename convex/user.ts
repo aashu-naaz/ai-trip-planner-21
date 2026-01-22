@@ -20,9 +20,9 @@ export const CreateNewUser = mutation({
                 imageUrl: args.imageUrl,
             };
 
-            await ctx.db.insert("UserTable", userData);
+            const newUserId = await ctx.db.insert("UserTable", userData);
 
-            return userData;
+            return { ...userData, _id: newUserId };
         }
 
         return user[0];

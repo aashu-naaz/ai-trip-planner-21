@@ -26,6 +26,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(PhotoRefUrl);
     }
     catch (e) {
-        return NextResponse.json({ error: e })
+        return NextResponse.json({ error: e instanceof Error ? e.message : String(e) })
     }
 }

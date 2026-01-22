@@ -34,14 +34,14 @@ function PlaceCardItem({ activity }: Props) {
             {/* Image Section */}
             <div className='relative w-full h-[280px]'>
                 <Image
-                    src={photoUrl ? photoUrl : (activity.place_image_url || '/placeholder.jpg')}
+                    src={photoUrl ? photoUrl : ((activity.place_image_url && !activity.place_image_url.includes('example.com')) ? activity.place_image_url : '/placeholder.jpg')}
                     alt={activity.place_name}
                     fill
                     className='object-cover'
                 />
             </div>
             {/* Content Section */}
-            <div className='p-4 flex flex-col gap-2 flex-grow'>
+            <div className='p-4 flex flex-col gap-2 grow'>
                 {/* Title */}
                 <h2 className='font-bold text-lg'>{activity.place_name}</h2>
                 <p className='text-sm text-gray-400 line-clamp-2'>{activity.place_details}</p>

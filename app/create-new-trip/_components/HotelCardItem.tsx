@@ -1,9 +1,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios';
-import client from 'openai';
 
 export interface Hotel {
     hotel_name: string;
@@ -42,7 +41,7 @@ function HotelCardItem({ hotel }: Props) {
         <div className='hover:scale-105 transition-all cursor-pointer border rounded-xl shadow-md bg-white'>
             <div className='relative h-[250px] w-full'>
                 <Image
-                    src={photoUrl ? photoUrl : (hotel?.hotel_image_url || '/placeholder.jpg')}
+                    src={photoUrl ? photoUrl : ((hotel?.hotel_image_url && !hotel.hotel_image_url.includes('example.com')) ? hotel.hotel_image_url : '/placeholder.jpg')}
                     alt={hotel?.hotel_name || 'Hotel Image'}
                     fill
                     className='rounded-t-xl object-cover'

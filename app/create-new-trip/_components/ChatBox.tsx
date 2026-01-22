@@ -30,10 +30,19 @@ export type Activity = {
     place_name: string;
     place_details: string;
     place_image_url: string;
-    geo_coordinates: any;
+    geo_coordinates: {
+        lat: number;
+        lng: number;
+    } | string;
     place_address: string;
     ticket_pricing: string;
     time_to_travel: string;
+}
+
+export type ItineraryDay = {
+    day: string | number;
+    plan: string; // Sometimes AI returns a plan summary?
+    activities: Activity[];
 }
 
 export type TripInfo = { // Exported for use in page.tsx
@@ -43,7 +52,7 @@ export type TripInfo = { // Exported for use in page.tsx
     group_size: string,
     origin: string,
     hotels: Hotel[],
-    itinerary: any
+    itinerary: ItineraryDay[]
 }
 
 function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
@@ -123,8 +132,8 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                 let aiContent = "Sorry, I encountered an error.";
 
                 if (data && typeof data === 'object') {
-                    if (data.resp) {
-                        aiContent = data.resp;
+                    if (data.resp || data.resp === "") {
+                        aiContent = data.resp || "I'm thinking..."; // Fallback if empty
                     } else if (data.error) {
                         aiContent = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
                     } else {
@@ -156,11 +165,18 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                 // router.push('/view-trip/' + saveResult)
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error sending message:", error)
+            let errorMessage = "Network error. Please try again.";
+            if (error.response) {
+                errorMessage = error.response.data?.error || `Error ${error.response.status}: ${error.response.statusText}`;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
             setMessages((prev) => [...prev, {
                 role: 'assistant',
-                content: "Network error. Please try again."
+                content: errorMessage,
             }])
         } finally {
             setIsLoading(false)

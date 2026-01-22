@@ -2,53 +2,57 @@
 import React, { useEffect, useState } from 'react'
 import { Timeline } from '@/components/ui/timeline';
 import Image from 'next/image';
-import { Clock, ExternalLink, Star, Ticket, Timer, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import HotelCardItem from './HotelCardItem';
 import PlaceCardItem from './PlaceCardItem';
 import { useTripDetail } from '@/app/provider';
 import { TripInfo } from './ChatBox';
+import { ArrowLeft } from 'lucide-react';
 
-function Itinerary({ trip }: { trip?: TripInfo }) {
+function Itinerary() {
 
-    // @ts-ignore
     const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
     const [tripData, setTripData] = useState<TripInfo | null>(null);
 
     useEffect(() => {
-        trip && setTripData(trip)
-    }, [trip])
+        tripDetailInfo && setTripData(tripDetailInfo)
+    }, [tripDetailInfo])
 
     const data = tripData ? [
         {
             title: "Hotels",
             content: (
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    {tripData?.hotels?.map((hotel: any, index: number) => (
+                    {tripData?.hotels?.map((hotel, index) => (
                         <HotelCardItem key={index} hotel={hotel} />
                     ))}
                 </div>
             )
         },
-        ...tripData?.itinerary?.map((dayData: any) => ({
-            title: `Day ${dayData?.day}`,
+        ...(tripData?.itinerary?.map((dayData, index) => ({
+            title: `Day ${dayData.day}`,
             content: (
                 <div>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-                        {dayData?.activities?.map((activity: any, index: number) => (
+                        {dayData.activities?.map((activity, index) => (
                             <PlaceCardItem key={index} activity={activity} />
                         ))}
                     </div>
                 </div>
             )
-        }))
+        })) || [])
     ] : [];
 
     return (
         <div className='relative w-full h-[83vh] overflow-auto'>
-            {/* @ts-ignore */}
-            <Timeline data={data} tripData={tripData} />
+            {tripData ? <Timeline data={data} tripData={tripData} />
+                :
+                <div>
+                    <h2 className='flex gap-2 text-3xl text-white items-center absolute bottom-20'> <ArrowLeft />Getting to know you to build perfect trip here...</h2>
+                    <Image src="/pantheon.png" alt="Pantheon" width={800} height={600} className='w-full h-full object-cover rounded-3xl' />
+                </div>
+            }
         </div>
     )
 }

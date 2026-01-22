@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import ChatBox, { TripInfo } from './_components/ChatBox';
 import Itinerary from './_components/Itinerary';
 import { TimelineDemo } from '@/components/TimelineDemo';
-
-import { DummyTripData } from './_components/DummyTripData';
+import { useTripDetail } from '@/app/provider';
 
 function CreateNewTrip() {
   const [tripData, setTripData] = useState<TripInfo>();
@@ -12,10 +11,10 @@ function CreateNewTrip() {
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 gap-5 px-10 pt-5'>
       <div>
-        <ChatBox setTripData={(v: any) => setTripData(v)} />
+        <ChatBox setTripData={(v: TripInfo) => setTripData(v)} />
       </div>
       <div>
-        <Itinerary trip={tripData || DummyTripData} />
+        <Itinerary />
       </div>
     </div>
   )
