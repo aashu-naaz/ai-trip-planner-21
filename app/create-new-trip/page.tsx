@@ -4,6 +4,8 @@ import ChatBox, { TripInfo } from './_components/ChatBox';
 import Itinerary from './_components/Itinerary';
 import { TimelineDemo } from '@/components/TimelineDemo';
 
+import { DummyTripData } from './_components/DummyTripData';
+
 function CreateNewTrip() {
   const [tripData, setTripData] = useState<TripInfo>();
 
@@ -13,9 +15,7 @@ function CreateNewTrip() {
         <ChatBox setTripData={(v: any) => setTripData(v)} />
       </div>
       <div>
-        {tripData ? <Itinerary trip={{ tripDetail: tripData }} /> :
-          <div className='hidden md:block h-[85vh] overflow-y-auto'><TimelineDemo /></div>
-        }
+        <Itinerary trip={tripData || DummyTripData} />
       </div>
     </div>
   )

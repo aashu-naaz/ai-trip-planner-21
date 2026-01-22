@@ -17,9 +17,12 @@ function GeneratingTripUi({ viewTrip, disable }: any) {
                 Gathering best destinations, activities, and travel details for you.
             </p>
 
-            <Button disabled={disable} onClick={viewTrip} className='w-full'>
-                View Trip
-            </Button>
+            {!disable &&
+                <div className='w-full text-center'>
+                    <h3 className='font-bold text-lg text-green-600'>Trip Generated Successfully!</h3>
+                    <p className='text-sm text-gray-400'>Check your itinerary on the right 👉</p>
+                </div>
+            }
         </div>
     )
 }

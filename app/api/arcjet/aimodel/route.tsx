@@ -69,31 +69,56 @@ If UI IS 'final' (all info collected):
        }
     ]
   }
-}`
+}
+IMPORTANT:
+- Generate **at least 2 hotel options**.
+- Generate a detailed itinerary for **every single day** of the trip duration (e.g. if 4 days, generate Day 1, Day 2, Day 3, Day 4).
+- Ensure each day has at least 2 activities.`
 
 export async function POST(request: NextRequest) {
   const { messages } = await request.json();
 
+  if (!process.env.OPENROUTER_API_KEY) {
+    return NextResponse.json({ error: "OpenRouter API Key is missing" }, { status: 500 });
+  }
+
   try {
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-4.1-mini',
+      model: 'openai/gpt-4o-mini',
       response_format: { type: "json_object" },
-      max_tokens: 2500, // Increased limit for full trip plan generation
+      max_tokens: 8000,
       messages: [
         {
           role: 'system',
           content: PROMPT,
         },
-        ...messages
+        ...messages.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
       ]
     });
-    console.log(completion.choices[0].message);
-    const message = completion.choices[0].message;
-    return NextResponse.json(JSON.parse(message.content ?? ''));
+
+    const messageContent = completion.choices[0].message.content;
+    console.log("Raw AI Response:", messageContent);
+
+    if (!messageContent) {
+      throw new Error("Empty response from AI");
+    }
+
+    try {
+      const parsedResponse = JSON.parse(messageContent);
+      return NextResponse.json(parsedResponse);
+    } catch (parseError) {
+      console.error("JSON Parsing Error:", parseError);
+      console.error("Failed JSON Content:", messageContent);
+      return NextResponse.json({ error: "Failed to parse AI response as JSON" }, { status: 500 });
+    }
+
   }
   catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Unknown error";
-    console.error("API Error:", e);
+    console.error("API Error Details:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

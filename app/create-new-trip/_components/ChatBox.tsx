@@ -14,13 +14,26 @@ import { api } from '@/convex/_generated/api';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
+import { useTripDetail } from '@/app/provider';
 import { useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+import HotelCardItem, { Hotel } from './HotelCardItem';
 
 type Message = {
     role: string,
     content: string,
     ui?: string
+}
+
+export type Activity = {
+    place_name: string;
+    place_details: string;
+    place_image_url: string;
+    geo_coordinates: any;
+    place_address: string;
+    ticket_pricing: string;
+    time_to_travel: string;
 }
 
 export type TripInfo = { // Exported for use in page.tsx
@@ -29,7 +42,7 @@ export type TripInfo = { // Exported for use in page.tsx
     duration: string,
     group_size: string,
     origin: string,
-    hotels: any,
+    hotels: Hotel[],
     itinerary: any
 }
 
@@ -44,6 +57,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
     const router = useRouter();
     const { user } = useUser();
     const { userDetail, setUserDetail } = useContext(UserDetailContext);
+    const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -129,7 +143,9 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
             if (isFinal) {
                 setTripDetail(result?.data?.trip_plan);
+                setTripDetailInfo(result?.data?.trip_plan);
                 if (setTripData) setTripData(result?.data?.trip_plan); // Update parent state
+                setIsFinal(false);
                 const tripId = uuidv4();
                 const saveResult = await SaveTripDetail({
                     tripDetail: result?.data?.trip_plan,
@@ -137,7 +153,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                     uid: userDetail?._id
                 });
                 console.log(saveResult)
-                router.push('/view-trip/' + saveResult)
+                // router.push('/view-trip/' + saveResult)
             }
 
         } catch (error) {
