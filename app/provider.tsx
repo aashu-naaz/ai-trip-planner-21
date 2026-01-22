@@ -6,8 +6,10 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
+import { TripDetailContext, TripContextType } from '@/context/TripDetailContext';
 
 function Provider({
+
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -16,6 +18,7 @@ function Provider({
   const pathname = usePathname();
   const { user } = useUser();
   const [userDetail, setUserDetail] = useState<any>();
+  const [tripDetailInfo, setTripDetailInfo] = useState<any>();
   const createUser = useMutation(api.user.CreateNewUser);
 
   useEffect(() => {
@@ -37,10 +40,12 @@ function Provider({
 
   return (
     <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-      <div className={pathname === '/create-new-trip' ? 'bg-[#fce7f3] min-h-screen transition-colors duration-500' : ''}>
-        <Header />
-        {children}
-      </div>
+      <TripDetailContext.Provider value={{ tripDetailInfo, setTripDetailInfo }}>
+        <div className={pathname === '/create-new-trip' ? 'bg-[#fce7f3] min-h-screen transition-colors duration-500' : ''}>
+          <Header />
+          {children}
+        </div>
+      </TripDetailContext.Provider>
     </UserDetailContext.Provider>
   );
 }
@@ -49,4 +54,8 @@ export default Provider;
 
 export const useUserDetail = () => {
   return useContext(UserDetailContext);
+}
+
+export const useTripDetail = (): TripContextType => {
+  return useContext(TripDetailContext) as TripContextType;
 }

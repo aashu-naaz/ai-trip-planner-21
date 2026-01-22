@@ -1,0 +1,68 @@
+
+import Link from 'next/link'
+import Image from 'next/image'
+import React, { use, useEffect, useState } from 'react'
+import axios from 'axios';
+import client from 'openai';
+
+export interface Hotel {
+    hotel_name: string;
+    hotel_address: string;
+    price: string;
+    rating: number;
+    hotel_image_url: string;
+}
+
+type Props = {
+    hotel: Hotel;
+}
+
+
+
+function HotelCardItem({ hotel }: Props) {
+
+    const [photoUrl, setPhotoUrl] = useState<string>();
+    useEffect(() => {
+        hotel && GetGooglePlaceDetail();
+    }, [hotel])
+
+    const GetGooglePlaceDetail = async () => {
+        const result = await axios.post('/api/arcjet/google-place-detail', {
+            placeName: hotel?.hotel_name
+        });
+
+        if (result?.data?.error) {
+            return;
+        }
+
+        setPhotoUrl(result?.data);
+    }
+
+    return (
+        <div className='hover:scale-105 transition-all cursor-pointer border rounded-xl shadow-md bg-white'>
+            <div className='relative h-[250px] w-full'>
+                <Image
+                    src={photoUrl ? photoUrl : (hotel?.hotel_image_url || '/placeholder.jpg')}
+                    alt={hotel?.hotel_name || 'Hotel Image'}
+                    fill
+                    className='rounded-t-xl object-cover'
+                />
+            </div>
+            <div className='p-4 flex flex-col gap-2'>
+                <h2 className='font-bold text-lg'>{hotel?.hotel_name}</h2>
+                <h2 className='text-xs text-gray-500 line-clamp-2'>📍 {hotel?.hotel_address}</h2>
+                <div className='flex justify-between items-center'>
+                    <h2 className='text-sm text-green-700 font-medium'>💵 {hotel?.price}</h2>
+                    <h2 className='text-sm font-bold'>⭐ {hotel?.rating}</h2>
+                </div>
+                <Link href={`https://www.google.com/maps/search/?api=1&query=${hotel?.hotel_name},${hotel?.hotel_address}`} target='_blank' className='w-full text-center mt-2'>
+                    <button className='w-full bg-primary/10 text-primary text-sm px-3 py-1 rounded-md border border-primary hover:bg-primary/20 transition-all'>
+                        View on Map
+                    </button>
+                </Link>
+            </div>
+        </div>
+    )
+}
+
+export default HotelCardItem

@@ -55,7 +55,7 @@ export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?:
 
         <div className='flex gap-5 text-gray-600 dark:text-gray-400 mt-5'>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Calendar className='h-5 w-5 text-orange-600' /> {tripData?.duration} Days
+            <Calendar className='h-5 w-5 text-orange-600' /> {tripData?.duration}
           </div>
           <div className='flex gap-2 items-center text-sm md:text-base'>
             <Wallet className='h-5 w-5 text-orange-600' /> {tripData?.budget} Budget
