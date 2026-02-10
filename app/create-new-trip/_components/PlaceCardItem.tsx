@@ -64,8 +64,8 @@ function PlaceCardItem({ activity }: Props) {
                         target='_blank'
                         className='w-full mt-2 block'
                     >
-                        <Button className='w-full h-8 text-xs bg-primary/10 text-primary border border-primary hover:bg-primary/20'>
-                            View on Map
+                        <Button className='w-full h-8 text-xs bg-black text-white px-3 py-1 border border-black hover:bg-primary/20 flex items-center justify-center gap-2'>
+                            View on Map <ExternalLink className='h-4 w-4' />
                         </Button>
                     </Link>
                 </div>

@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
+
 import { Timeline } from '@/components/ui/timeline';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -30,29 +31,36 @@ function Itinerary() {
                 </div>
             )
         },
-        ...(tripData?.itinerary?.map((dayData, index) => ({
-            title: `Day ${dayData.day}`,
-            content: (
-                <div>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-                        {dayData.activities?.map((activity, index) => (
-                            <PlaceCardItem key={index} activity={activity} />
-                        ))}
+        ...(tripData?.itinerary?.map((dayData, index) => {
+            let activities: any[] = [];
+            if (dayData.activities) activities = dayData.activities;
+            // @ts-ignore
+            else if (dayData.places) activities = dayData.places;
+            else if (typeof dayData.plan === 'object') {
+                activities = Array.isArray(dayData.plan) ? dayData.plan : [dayData.plan];
+            }
+
+            return {
+                title: String(dayData.day),
+                content: (
+                    <div>
+                        {typeof dayData.plan === 'string' && <h2 className='font-medium text-lg text-gray-600 mb-4'>{dayData.plan}</h2>}
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+                            {activities?.map((activity, index) => (
+                                <PlaceCardItem key={index} activity={activity} />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )
-        })) || [])
+                )
+            }
+        }) || [])
     ] : [];
 
+
+
     return (
-        <div className='relative w-full h-[83vh] overflow-auto'>
-            {tripData ? <Timeline data={data} tripData={tripData} />
-                :
-                <div>
-                    <h2 className='flex gap-2 text-3xl text-white items-center absolute bottom-20'> <ArrowLeft />Getting to know you to build perfect trip here...</h2>
-                    <Image src="/pantheon.png" alt="Pantheon" width={800} height={600} className='w-full h-full object-cover rounded-3xl' />
-                </div>
-            }
+        <div className='relative w-full'>
+            <Timeline data={data} tripData={tripData || undefined} />
         </div>
     )
 }

@@ -1,98 +1,89 @@
 "use client";
-import { Button } from '@/components/ui/button';
-import { HeroVideoDialog } from '@/components/ui/hero-video-dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useUser, useClerk } from '@clerk/nextjs';
-import { ArrowDown, Globe2, Landmark, Plane, Send } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { title } from 'process';
-import React from 'react';
 
+import { useEffect, useRef } from "react";
+import TypingPlaceholder from "./TypingPlaceholder";
 
+export default function Hero() {
+  const bgRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-const suggestions = [
-    {
-        title: 'Create New Trip',
-        icon: <Globe2 className='text-blue-400 h-5 w-5 ' />
-    },
-    {
-        title: 'Inspire me where to go',
-        icon: <Plane className='text-green-500 h-5 w-5' />
-    },
-    {
-        title: 'Discover Hidden gems',
-        icon: <Landmark className='text-orange-500 h-5 w-5' />
-    },
-    {
-        title: 'Adventure Destination',
-        icon: <Globe2 className='text-yellow-600 h-5 w-5' />
-    },
-]
-function Hero() {
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // Disable parallax on small screens
+      if (window.innerWidth < 768) return;
 
-    const { user } = useUser();
-    const { openSignIn } = useClerk();
-    const router = useRouter();
-    const onSend = () => {
-        if (!user) {
-            openSignIn();
-            return;
-        }
-        //Navigate to Create Trip Planner Web Page
-        router.push('/create-new-trip');
-    }
-    return (
-        <div className='mt-24 flex justify-center'>
-            {/* Content */}
-            <div className='max-w-3xl w-full text-center space-y-6 flex items-center flex-col'>
-                <h1 className='text-xl md:text-5xl font bold'>Hey, I'm your personal<span className='text-primary'></span>Trip Planner </h1>
-                <p className='text-lg'>Tell me what you want, and I'll handle the rest: Flights, Hotels, trip Planner - all in seconds</p>
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
 
-                {/* Input Box */}
-                <div className='w-full'>
-                    <div className='border rounded-2xl p-4 relative '>
-                        <Textarea placeholder='Create a trip for paris from New york'
-                            className='w-full h-28 bg-transparent border-none focus-visible:ring-0 shadow-none resize-none '
-                        />
-                        <Button size={'icon'} className='absolute bottom-6 right-6' onClick={() => onSend()}>
-                            <Send className='h-4 w-4' />
-                        </Button>
-                    </div>
-                </div>
-                {/* Suggestion list */}
+      if (bgRef.current) {
+        bgRef.current.style.transform = `translate(${x * 0.6}px, ${y * 0.6}px) scale(1.08)`;
+      }
 
-                <div className='flex gap-5'>
-                    {suggestions.map((suggestions, index) => (
-                        <div key={index}
-                            onClick={() => onSend()}
-                            className='flex items-center gap-2 border rounded-full p-2
-                cursor-pointer hover:bg-primary hover:text-white'>
-                            {suggestions.icon}
-                            <h2 className='text-sm'>{suggestions.title}</h2>
-                        </div>
+      if (contentRef.current) {
+        contentRef.current.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      }
+    };
 
-                    ))}
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
-                </div>
+  return (
+    <section className="relative min-h-screen w-full overflow-hidden bg-black">
+      {/* Background image */}
+      <div
+        ref={bgRef}
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-200 ease-out"
+        style={{
+          backgroundImage: "url('/hero-cosmic.jpg')",
+        }}
+      />
 
-                <div className='flex items-center justify-center flex-col' >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
 
-                    <h2 className='my-7 mt-14 flex gap-2 text-center'>Not Sure where to start? <strong>See how it works</strong> <ArrowDown /></h2>
+      {/* Content */}
+      <div
+        ref={contentRef}
+        className="relative z-10 flex min-h-screen items-center justify-center px-6 text-center transition-transform duration-200 ease-out"
+      >
+        <div className="max-w-5xl">
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
+            Your AI-powered{" "}
+            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+              personal trip planner
+            </span>
+          </h1>
 
-                    {/* Video Section */}
-                    <HeroVideoDialog
-                        className="block dark:hidden"
-                        animationStyle="from-center"
-                        videoSrc="https://www.example.com/dummy-video"
-                        thumbnailSrc="https://mma.prnewswire.com/media/2401528/1_MindtripProduct.jpg?p=facebook"
-                        thumbnailAlt="Dummy Video Thumbnail"
-                    />
-                </div>
+          <p className="mt-6 text-base sm:text-lg text-white/80">
+            Tell me what you want — flights, hotels, routes, itineraries.
+            <br />
+            Our AI handles everything.
+          </p>
+
+          {/* AI typing prompt */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex w-full sm:w-[520px] items-center rounded-full bg-white/10 backdrop-blur-md px-6 py-4 text-white/70 text-left">
+              <TypingPlaceholder />
+              <span className="ml-1 animate-pulse">|</span>
             </div>
+
+            {/* Glow button */}
+            <button
+              className="group relative flex items-center gap-2 rounded-full px-6 py-4 font-semibold text-white
+              bg-gradient-to-r from-purple-500 to-fuchsia-500
+              shadow-[0_0_20px_rgba(168,85,247,0.5)]
+              hover:shadow-[0_0_40px_rgba(217,70,239,0.9)]
+              hover:scale-105 transition-all duration-300"
+            >
+              <span className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-100
+                bg-gradient-to-r from-purple-500 to-fuchsia-500 transition duration-500" />
+
+              <span className="relative z-10">✈ Create Trip</span>
+            </button>
+          </div>
         </div>
-    )
-
+      </div>
+    </section>
+  );
 }
-
-
-export default Hero;

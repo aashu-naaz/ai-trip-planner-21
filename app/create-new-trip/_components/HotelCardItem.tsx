@@ -1,6 +1,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ExternalLink } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 
@@ -55,8 +56,8 @@ function HotelCardItem({ hotel }: Props) {
                     <h2 className='text-sm font-bold'>⭐ {hotel?.rating}</h2>
                 </div>
                 <Link href={`https://www.google.com/maps/search/?api=1&query=${hotel?.hotel_name},${hotel?.hotel_address}`} target='_blank' className='w-full text-center mt-2'>
-                    <button className='w-full bg-primary/10 text-primary text-sm px-3 py-1 rounded-md border border-primary hover:bg-primary/20 transition-all'>
-                        View on Map
+                    <button className='w-full bg-black text-white text-sm px-3 py-1 rounded-md border border-black hover:bg-primary/20 transition-all flex items-center justify-center gap-2'>
+                        View on Map <ExternalLink className='h-4 w-4' />
                     </button>
                 </Link>
             </div>

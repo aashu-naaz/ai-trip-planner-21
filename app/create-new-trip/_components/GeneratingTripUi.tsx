@@ -18,9 +18,9 @@ function GeneratingTripUi({ viewTrip, disable }: any) {
             </p>
 
             {!disable &&
-                <div className='w-full text-center'>
+                <div className='w-full text-center flex flex-col items-center gap-2'>
                     <h3 className='font-bold text-lg text-green-600'>Trip Generated Successfully!</h3>
-                    <p className='text-sm text-gray-400'>Check your itinerary on the right 👉</p>
+                    <Button onClick={viewTrip}>View My Trips</Button>
                 </div>
             }
         </div>

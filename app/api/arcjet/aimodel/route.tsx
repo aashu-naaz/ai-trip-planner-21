@@ -1,76 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from 'openai';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import aj from "@/lib/arcjet";
 
 // Define the prompt constant
-const PROMPT = `You are an AI Trip Planner Agent. Your goal is to help the user plan a trip by asking one relevant trip-related question at a time.
-Only ask questions about the following details in order, and wait for the user's answer before asking the next:
-1. Starting location (source) -> ui: ''
-2. Destination city or country -> ui: ''
-3. Group size (Solo, Just Me, Couple, A Couple, Family, Friends) -> ui: 'groupSize'
+const PROMPT = `You are an AI Trip Planner Agent. Help the user plan a trip by asking one relevant question at a time.
+
+CRITICAL: You MUST ALWAYS reply with a valid JSON object. NEVER reply with plain text.
+
+Ask these questions in order:
+1. Starting location -> ui: ''
+2. Destination -> ui: ''
+3. Group size (Solo, Couple, Family, Friends) -> ui: 'groupSize'
 4. Budget (Cheap, Moderate, Luxury) -> ui: 'budget'
-5. Trip duration (number of days) -> ui: 'tripDuration'
-6. Travel interests (e.g., adventure, sightseeing, cultural, food, nightlife, relaxation) -> ui: ''
-7. Special requirements or preferences (if any) -> ui: ''
+5. Trip duration (days) -> ui: 'tripDuration'
+6. Travel interests -> ui: ''
+7. Special requirements -> ui: ''
 
-Do not ask multiple questions at once, and never ask irrelevant questions.
-If the user provides an answer like "2 days" or "3", accept it as the Trip Duration and move to the next question.
-If any answer is missing or unclear, politely ask the user to clarify before proceeding.
-Always maintain a conversational, interactive style while asking questions.
+If answer is "2 days", accept as Duration.
+Ask politely. Returns 'ui' ONLY for specific questions above. For others, return 'ui': ''.
+When final itinerary is ready, return 'ui': 'final'.
 
-IMPORTANT: returns 'ui' ONLY for the specific questions listed above. For others (like interests), return 'ui': '' or null.
-When the final itinerary is ready to be generated, return 'ui': 'final'.
-
-Once all required information is collected, generate and return a **strict JSON response only (no explanations or extra text) with following JSON schema:**
-IMPORTANT: 'resp' field MUST NEVER be empty. It should always contain a polite question or confirmation message.
-
+Format:
 If UI is NOT 'final':
-{
-  "resp": "Text response asking next question",
-  "ui": "ui_component_name_or_empty"
-}
+{ "resp": "Question?", "ui": "ui_id" }
 
-If UI IS 'final' (all info collected):
+If UI IS 'final':
 {
-  "resp": "Okay, Great! Here is your generated trip plan.",
+  "resp": "Here is your plan.",
   "ui": "final",
   "trip_plan": {
-    "budget": "...",
-    "destination": "...",
-    "duration": "...",
-    "group_size": "...",
-    "origin": "...",
-    "hotels": [
-       {
-         "hotel_name": "...",
-         "hotel_address": "...",
-         "price": "...",
-         "hotel_image_url": "...",
-         "geo_coordinates": "...",
-         "rating": "...",
-         "description": "..."
-       }
-    ],
-    "itinerary": [
-       {
-         "day": "Day 1",
-         "plan": [
-            {
-               "place_name": "...",
-               "place_details": "...",
-               "place_image_url": "...",
-               "geo_coordinates": "...",
-               "ticket_pricing": "...",
-               "time_to_travel": "..."
-            }
-         ]
-       }
-    ]
+    "budget": "...", "destination": "...", "duration": "...", "group_size": "...", "origin": "...",
+    "hotels": [{ "hotel_name": "...", "hotel_address": "...", "price": "...", "hotel_image_url": "...", "geo_coordinates": "...", "rating": "...", "description": "..." }],
+    "itinerary": [{ "day": "Day 1", "activities": [{ "place_name": "...", "place_details": "...", "place_image_url": "...", "geo_coordinates": "...", "ticket_pricing": "...", "time_to_travel": "..." }] }]
   }
 }
-IMPORTANT:
-- Generate **at least 2 hotel options**.
-- Generate a detailed itinerary for **every single day** of the trip duration (e.g. if 4 days, generate Day 1, Day 2, Day 3, Day 4).
-- Ensure each day has at least 2 activities.`;
+Generate 2+ hotels and activities for each day.`;
 
 export async function POST(request: NextRequest) {
   // 1. Initialize OpenAI Client inside the handler to ensure ENV vars are loaded
@@ -99,6 +64,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { messages, isFinal } = body;
+    const user = await currentUser();
+    const { has } = await auth();
+    const hasPremiumAccess = has({ plan: 'monthly' });
+    console.log("hasPremiumAccess", hasPremiumAccess);
+
+    const decision = await aj.protect(request, { requested: 1, userId: user?.primaryEmailAddress?.emailAddress || 'anonymous' });
+
+    if (decision.isDenied() && !hasPremiumAccess) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+      }
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Invalid 'messages' format" }, { status: 400 });
@@ -112,8 +90,7 @@ export async function POST(request: NextRequest) {
     try {
       completion = await openai.chat.completions.create({
         model: 'openai/gpt-4o-mini',
-        response_format: { type: "json_object" },
-        max_tokens: 4000,
+        max_tokens: 8000,
         messages: [
           {
             role: 'system',
@@ -123,7 +100,8 @@ export async function POST(request: NextRequest) {
             role: msg.role as 'user' | 'assistant' | 'system',
             content: msg.content,
           })),
-        ]
+        ],
+        response_format: { type: 'json_object' }
       }, { timeout: 45000, maxRetries: 1 }); // Increased to 45s, 1 retry
     } catch (apiError: any) {
       console.error("OpenAI API call failed:", apiError);
@@ -140,24 +118,31 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Parse AI Response (JSON)
-    // Clean up markdown code blocks if present
-    const cleanContent = messageContent.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
+    // Find the first '{' and the last '}' to extract the JSON object
+    const jsonMatch = messageContent.match(/\{[\s\S]*\}/);
+    const cleanContent = jsonMatch ? jsonMatch[0] : messageContent;
 
     try {
       const parsedResponse = JSON.parse(cleanContent);
       return NextResponse.json(parsedResponse);
     } catch (parseError) {
       console.error("JSON Parsing Error:", parseError);
-      console.error("Failed Content:", messageContent); // Log the bad content
+      console.error("Failed Content:", messageContent);
+
+      // Fallback: If AI didn't return JSON, wrap the content in our expected structure
+      // This often happens if the AI refuses to answer or gives a plain text explanation
       return NextResponse.json({
-        error: "Failed to parse AI response. The model returned invalid JSON.",
-        details: messageContent.substring(0, 200) + "..." // Return snippet to client for debugging
-      }, { status: 500 });
+        resp: cleanContent || "I'm sorry, I couldn't generate a plan. Please try again.",
+        ui: ""
+      });
     }
 
   } catch (e: any) {
     // Global catch for any other unexpected errors
     console.error("Unexpected Route Error:", e);
-    return NextResponse.json({ error: `Internal Server Error: ${e.message}` }, { status: 500 });
+    return NextResponse.json({
+      error: `Internal Server Error: ${e.message}`,
+      resp: "I encountered an internal error. Please try again." // Friendly fallback
+    }, { status: 500 });
   }
 }

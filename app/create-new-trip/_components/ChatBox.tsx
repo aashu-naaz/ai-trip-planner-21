@@ -98,7 +98,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
             uid: userDetail?._id
         })
         console.log(result)
-        router.push('/view-trip/' + result)
+        router.push('/my-trips')
     }
 
     const onSend = () => {
@@ -121,6 +121,8 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
             const result = await axios.post('/api/arcjet/aimodel', {
                 messages: [...messages, newMsg],
                 isFinal: isFinal
+            }, {
+                timeout: 60000 // 60 seconds timeout
             })
 
             console.log("TRIP", result.data);
@@ -141,6 +143,30 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                     }
                 } else if (typeof data === 'string') {
                     aiContent = data;
+                }
+
+                // parsing raw json check
+                if (aiContent.trim().startsWith('{') && aiContent.includes('"resp"')) {
+                    try {
+                        const parsed = JSON.parse(aiContent);
+                        if (parsed.resp) {
+                            aiContent = parsed.resp;
+                        }
+                        // If we successfully parsed, we might want to use the ui field too
+                        if (parsed.ui) {
+                            result.data.ui = parsed.ui;
+                        }
+                        if (parsed.trip_plan) {
+                            result.data.trip_plan = parsed.trip_plan;
+                            // triggering final update via side effect if needed?
+                            // logic below uses result.data.ui, so updating it here matters.
+                        }
+                    } catch (e) {
+                        // If parsing fails, it's likely truncated or invalid JSON
+                        // We can choose to show a friendly error or leave as is.
+                        // Given the user report, hiding the scary JSON is better.
+                        aiContent = "Sorry, I encountered an error generating the plan (incomplete response). Please try again.";
+                    }
                 }
 
                 setMessages((prev) => [...prev, {

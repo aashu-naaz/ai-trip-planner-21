@@ -1,13 +1,13 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
+import { SignUp } from "@clerk/nextjs";
 import ClientOnly from "@/app/_components/ClientOnly";
 
 export default function Page() {
   return (
     <ClientOnly>
       <div className="flex min-h-screen items-center justify-center">
-        <SignIn />
+        <SignUp />
       </div>
     </ClientOnly>
   );

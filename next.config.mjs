@@ -4,12 +4,6 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'images.unsplash.com',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
                 hostname: 'places.googleapis.com',
                 port: '',
                 pathname: '/**',
@@ -21,8 +15,20 @@ const nextConfig = {
                 pathname: '/**',
             },
             {
+                protocol: 'https',
+                hostname: 'www.fourseasons.com',
+                port: '',
+                pathname: '/**',
+            },
+            {
                 protocol: 'http',
                 hostname: 'example.com',
+                port: '',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'upload.wikimedia.org',
                 port: '',
                 pathname: '/**',
             },
