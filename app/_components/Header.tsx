@@ -38,22 +38,24 @@ export default function Header() {
 
       <header
         className={`
-          fixed top-0 z-50 w-full
+          fixed top-0 left-0 w-screen z-50
+          flex items-center px-10
+          h-[var(--header-h)]
           transition-all duration-300
           ${scrolled
-            ? "py-2 backdrop-blur-2xl bg-black/60 border-b border-white/10"
-            : "py-4 backdrop-blur-xl bg-black/35"}
+            ? "backdrop-blur-2xl bg-black/60 border-b border-white/10"
+            : "backdrop-blur-xl bg-black/35"}
         `}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
-          
+        <div className="mx-auto flex max-w-7xl w-full items-center justify-between">
+
           {/* LOGO + BRAND */}
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/logo-airplane.png"
-              alt="Smart Journey"
-              width={scrolled ? 32 : 40}
-              height={scrolled ? 32 : 40}
+              src="/logo.svg"
+              alt="SmartJourney"
+              width={40}
+              height={40}
               className="rounded-full transition-all duration-300"
               priority
             />
@@ -71,23 +73,27 @@ export default function Header() {
                 text-transparent
                 animate-[glowPulse_3s_ease-in-out_infinite]
                 transition-all duration-300
-                ${scrolled ? "text-[22px]" : "text-[28px]"}
+                text-[26px]
               `}
             >
-              Smart Journey
+              SmartJourney
             </span>
           </Link>
 
           {/* NAV */}
           <nav className="hidden md:flex items-center gap-12">
-            {["Home", "Pricing", "Contact us"].map((item) => (
+            {[
+              { name: "Home", path: "/" },
+              { name: "Pricing", path: "/pricing" },
+              { name: "Contact us", path: "/contact-us" },
+            ].map((item) => (
               <Link
-                key={item}
-                href="#"
+                key={item.name}
+                href={item.path}
                 className="
                   font-[var(--font-playfair)]
-                  text-sm
-                  tracking-[0.25em]
+                  text-base
+                  tracking-widest
                   uppercase
                   text-white/75
                   hover:text-white
@@ -105,7 +111,7 @@ export default function Header() {
                   hover:after:w-full
                 "
               >
-                {item}
+                {item.name}
               </Link>
             ))}
           </nav>
@@ -113,7 +119,7 @@ export default function Header() {
           {/* ACTIONS */}
           <div className="flex items-center gap-4">
             <Link
-              href="/create-trip"
+              href="/create-new-trip"
               className="
                 rounded-full
                 bg-gradient-to-r

@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useEffect, useRef } from 'react'
-import { Send, Loader } from 'lucide-react'
+import { Send, Loader, Sparkles, Wand2, Bot } from 'lucide-react'
 import EmptyBoxState from './EmptyBoxState';
 import GroupSizeUi from './GroupSizeUi';
 import BudgetUi from './BudgetUi';
@@ -11,7 +11,7 @@ import axios from 'axios';
 import GeneratingTripUi from './GeneratingTripUi';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { useTripDetail } from '@/app/provider';
@@ -23,7 +23,8 @@ import HotelCardItem, { Hotel } from './HotelCardItem';
 type Message = {
     role: string,
     content: string,
-    ui?: string
+    ui?: string,
+    timestamp?: string
 }
 
 export type Activity = {
@@ -41,11 +42,11 @@ export type Activity = {
 
 export type ItineraryDay = {
     day: string | number;
-    plan: string; // Sometimes AI returns a plan summary?
+    plan: string;
     activities: Activity[];
 }
 
-export type TripInfo = { // Exported for use in page.tsx
+export type TripInfo = {
     budget: string,
     destination: string,
     duration: string,
@@ -62,15 +63,34 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
     const [isFinal, setIsFinal] = useState(false)
     const [tripDetail, setTripDetail] = useState<TripInfo>()
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const messagesContainerRef = useRef<HTMLDivElement>(null)
     const SaveTripDetail = useMutation(api.tripDetail.CreateTripDetail)
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useUser();
+    const initialized = useRef(false);
     const { userDetail, setUserDetail } = useContext(UserDetailContext);
     const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
 
+    const getCurrentTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+        setTimeout(() => {
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+            }
+        }, 100);
     }
+
+    useEffect(() => {
+        const query = searchParams.get('q');
+        if (query && !initialized.current) {
+            initialized.current = true;
+            sendMessage(query);
+            // Clean URL without refresh
+            router.replace('/create-new-trip', { scroll: false });
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         scrollToBottom()
@@ -81,7 +101,6 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
         if (lastMsg?.ui == 'final') {
             setIsFinal(true);
             setUserInput('Ok, Great!')
-            // onSend();
         }
     }, [messages])
 
@@ -110,7 +129,8 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
         const newMsg: Message = {
             role: 'user',
-            content: text
+            content: text,
+            timestamp: getCurrentTime()
         }
 
         setMessages((prev) => [...prev, newMsg])
@@ -119,170 +139,155 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
         try {
             const result = await axios.post('/api/arcjet/aimodel', {
-                messages: [...messages, newMsg],
+                messages: [...messages, { role: 'user', content: text }],
                 isFinal: isFinal
-            }, {
-                timeout: 60000 // 60 seconds timeout
             })
 
-            console.log("TRIP", result.data);
+            if (isFinal && result.data.trip_plan) {
+                const tripPlan = result.data.trip_plan as TripInfo;
+                setTripDetail(tripPlan);
+                setTripData?.(tripPlan);
+                setTripDetailInfo(tripPlan);
 
-            if (!isFinal) {
-                // Parse response: The API returns { resp: 'Text', ui: '...' }
-                // or an error object. We must ensure content is a string.
-                const data = result.data;
-                let aiContent = "Sorry, I encountered an error.";
-
-                if (data && typeof data === 'object') {
-                    if (data.resp || data.resp === "") {
-                        aiContent = data.resp || "I'm thinking..."; // Fallback if empty
-                    } else if (data.error) {
-                        aiContent = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
-                    } else {
-                        aiContent = "Error: " + (data.message || JSON.stringify(data));
-                    }
-                } else if (typeof data === 'string') {
-                    aiContent = data;
-                }
-
-                // parsing raw json check
-                if (aiContent.trim().startsWith('{') && aiContent.includes('"resp"')) {
-                    try {
-                        const parsed = JSON.parse(aiContent);
-                        if (parsed.resp) {
-                            aiContent = parsed.resp;
-                        }
-                        // If we successfully parsed, we might want to use the ui field too
-                        if (parsed.ui) {
-                            result.data.ui = parsed.ui;
-                        }
-                        if (parsed.trip_plan) {
-                            result.data.trip_plan = parsed.trip_plan;
-                            // triggering final update via side effect if needed?
-                            // logic below uses result.data.ui, so updating it here matters.
-                        }
-                    } catch (e) {
-                        // If parsing fails, it's likely truncated or invalid JSON
-                        // We can choose to show a friendly error or leave as is.
-                        // Given the user report, hiding the scary JSON is better.
-                        aiContent = "Sorry, I encountered an error generating the plan (incomplete response). Please try again.";
-                    }
-                }
+                setMessages((prev) => [...prev, {
+                    role: 'assistant',
+                    content: "Your trip is generated.",
+                    ui: 'tripResult',
+                    timestamp: getCurrentTime()
+                }])
+                setIsFinal(false);
+            } else {
+                const aiContent = result.data.resp;
+                const aiUi = result.data.ui;
 
                 setMessages((prev) => [...prev, {
                     role: 'assistant',
                     content: aiContent,
-                    ui: result?.data?.ui
+                    ui: aiUi,
+                    timestamp: getCurrentTime()
                 }])
             }
 
-            if (isFinal) {
-                setTripDetail(result?.data?.trip_plan);
-                setTripDetailInfo(result?.data?.trip_plan);
-                if (setTripData) setTripData(result?.data?.trip_plan); // Update parent state
-                setIsFinal(false);
-                const tripId = uuidv4();
-                const saveResult = await SaveTripDetail({
-                    tripDetail: result?.data?.trip_plan,
-                    tripId: tripId,
-                    uid: userDetail?._id
-                });
-                console.log(saveResult)
-                // router.push('/view-trip/' + saveResult)
-            }
-
-        } catch (error: any) {
-            console.error("Error sending message:", error)
-            let errorMessage = "Network error. Please try again.";
-            if (error.response) {
-                errorMessage = error.response.data?.error || `Error ${error.response.status}: ${error.response.statusText}`;
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-
+        } catch (error) {
+            console.error(error);
             setMessages((prev) => [...prev, {
                 role: 'assistant',
-                content: errorMessage,
+                content: "Something went wrong. Please try again.",
+                timestamp: getCurrentTime()
             }])
         } finally {
             setIsLoading(false)
         }
     }
 
-
-
-
-
-
-
-
-
-    // ... (existing imports)
-
-    const RenderGenerativeUi = (ui: string | undefined) => {
-        const option = ui?.toLowerCase()
-        if (option == 'budget') {
-            return <BudgetUi onOptionSelect={(v: string) => sendMessage(v)} />
-        } else if (option == 'groupsize') {
-            return <GroupSizeUi onOptionSelect={(v: string) => sendMessage(v)} />
-        } else if (option == 'tripduration') {
-            return <TripDurationUi onOptionSelect={(v: string) => sendMessage(v)} />
-        } else if (option == 'final') {
-            return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail} />
+    const RenderGenerativeUi = (ui: string) => {
+        switch (ui) {
+            case 'groupSize':
+                return <GroupSizeUi onOptionSelect={sendMessage} />
+            case 'budget':
+                return <BudgetUi onOptionSelect={sendMessage} />
+            case 'tripDuration':
+                return <TripDurationUi onOptionSelect={sendMessage} />
+            case 'final':
+                return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail} />
+            default:
+                return null;
         }
-        return null
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onSend();
+        }
+    };
+
     return (
-        <div className='h-[85vh] flex flex-col'>
-            {/* Display Messages Area */}
-            <section className='flex-1 overflow-y-auto p-4'>
-                {messages.length == 0 ? <EmptyBoxState setMsg={sendMessage} /> :
-                    <div className='flex flex-col gap-2'>
+        <div className='h-full flex flex-col overflow-hidden relative'>
+            {/* Dark cosmic gradient background */}
+            <div className='absolute inset-0 bg-gradient-to-b from-indigo-950 via-purple-950 to-black/95 pointer-events-none' />
+
+            {/* Chat Header */}
+            <div className='shrink-0 px-5 py-4 border-b border-white/10 backdrop-blur-xl bg-white/5 relative z-10'>
+                <div className='flex items-center gap-3'>
+                    <div className='w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30'>
+                        <Sparkles className='w-5 h-5 text-white' />
+                    </div>
+                    <div>
+                        <h2 className='text-base font-bold text-white tracking-tight'>SmartJourney AI</h2>
+                        <p className='text-xs text-white/50'>Your personal trip planner ✈️</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Scrollable Messages Area */}
+            <div ref={messagesContainerRef} className='flex-1 overflow-y-auto px-5 py-5 relative z-10 min-h-0 scroll-smooth'>
+                {messages.length === 0 && !isLoading ? (
+                    <EmptyBoxState setMsg={sendMessage} />
+                ) : (
+                    <div className='flex flex-col gap-4 pb-4'>
                         {messages.map((msg, index) => (
-                            <div
-                                key={index}
-                                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mt-2`}
-                            >
-                                <div className={`px-4 py-2 rounded-xl max-w-lg ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+                            <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-fade-up`} style={{ animationDelay: `${index * 0.05}s` }}>
+                                <div className={`px-4 py-3 max-w-[85%] transition-all duration-300 ${msg.role === 'user'
+                                    ? 'rounded-[20px_20px_4px_20px] bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] text-sm leading-relaxed'
+                                    : 'rounded-[20px_20px_20px_4px] backdrop-blur-xl bg-white/5 border border-white/10 text-white/90 shadow-lg text-sm leading-relaxed'
+                                    }`}>
                                     {msg.content}
-                                    {RenderGenerativeUi(msg.ui ?? '')}
                                 </div>
+                                {msg.timestamp && (
+                                    <span className="text-[10px] text-white/30 mt-1 px-1">
+                                        {msg.timestamp}
+                                    </span>
+                                )}
+
+                                {/* Render Interactive UI */}
+                                {msg.role === 'assistant' && msg.ui && (
+                                    <div className="w-full mt-2">
+                                        {RenderGenerativeUi(msg.ui)}
+                                    </div>
+                                )}
                             </div>
                         ))}
+
+                        {/* Typing Indicator */}
                         {isLoading && (
-                            <div className='flex justify-start mt-2'>
-                                <div className='bg-gray-100 px-4 py-2 rounded-xl'>
-                                    <Loader className='animate-spin' />
+                            <div className='flex flex-col items-start animate-scale-in'>
+                                <div className='backdrop-blur-xl bg-white/5 border border-purple-500/30 px-4 py-3 rounded-[20px_20px_20px_4px] shadow-lg flex items-center gap-2'>
+                                    <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                    <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                    <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce"></span>
                                 </div>
+                                <span className="text-[10px] text-white/30 mt-1 px-1">AI is thinking...</span>
                             </div>
                         )}
+
                         <div ref={messagesEndRef} />
                     </div>
-                }
-            </section>
+                )}
+            </div>
 
             {/* Input Area */}
-            <div className='border rounded-2xl p-4 relative'>
-                <Textarea
-                    placeholder='Start typing here...'
-                    className='w-full h-28 bg-transparent border-none focus-visible:ring-0'
-                    value={userInput}
-                    onChange={(event) => setUserInput(event.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            onSend();
-                        }
-                    }}
-                />
-                <Button
-                    size='icon'
-                    className='absolute bottom-6 right-6'
-                    onClick={onSend}
-                >
-                    <Send className='h-4 w-4' />
-                </Button>
+            <div className='shrink-0 backdrop-blur-xl bg-white/5 border-t border-white/10 p-4 relative z-10'>
+                <div className='relative rounded-2xl border border-white/10 bg-white/5 p-1 focus-within:ring-2 focus-within:ring-purple-500/30 transition-all'>
+                    <Textarea
+                        placeholder='Describe your dream journey...'
+                        className='min-h-[60px] max-h-[120px] w-full resize-none border-none bg-transparent shadow-none focus-visible:ring-0 p-3 pr-12 text-sm text-white placeholder:text-white/40 leading-relaxed'
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <Button
+                        size='icon'
+                        className={`absolute bottom-2 right-2 h-9 w-9 transition-all bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(217,70,239,0.7)] hover:scale-105 rounded-full ${!userInput.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={onSend}
+                        disabled={!userInput.trim() || isLoading}
+                    >
+                        {isLoading ? <Loader className='h-4 w-4 animate-spin' /> : <Send className='h-4 w-4' />}
+                    </Button>
+                </div>
+                <p className="text-center text-[10px] text-white/30 mt-2">
+                    Enter to send • Shift + Enter for new line
+                </p>
             </div>
         </div>
     )

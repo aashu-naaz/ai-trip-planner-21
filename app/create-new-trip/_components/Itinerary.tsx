@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 import { Timeline } from '@/components/ui/timeline';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ function Itinerary() {
 
     const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
     const [tripData, setTripData] = useState<TripInfo | null>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         tripDetailInfo && setTripData(tripDetailInfo)
@@ -59,8 +60,8 @@ function Itinerary() {
 
 
     return (
-        <div className='relative w-full'>
-            <Timeline data={data} tripData={tripData || undefined} />
+        <div ref={scrollContainerRef} className='h-full overflow-y-auto p-6'>
+            <Timeline data={data} tripData={tripData || undefined} scrollContainer={scrollContainerRef} />
         </div>
     )
 }

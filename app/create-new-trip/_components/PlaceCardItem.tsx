@@ -30,31 +30,33 @@ function PlaceCardItem({ activity }: Props) {
     }
 
     return (
-        <div className='bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all h-[380px] flex flex-col'>
+        <div className='group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg overflow-hidden hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02] h-[380px] flex flex-col'>
             {/* Image Section */}
-            <div className='relative w-full h-[280px]'>
+            <div className='relative w-full h-[200px] overflow-hidden'>
                 <Image
                     src={photoUrl ? photoUrl : ((activity.place_image_url && !activity.place_image_url.includes('example.com')) ? activity.place_image_url : '/placeholder.jpg')}
                     alt={activity.place_name}
                     fill
-                    className='object-cover'
+                    className='object-cover transition-transform duration-300 group-hover:scale-105'
                 />
+                {/* Dark gradient overlay for text readability */}
+                <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
             </div>
             {/* Content Section */}
-            <div className='p-4 flex flex-col gap-2 grow'>
+            <div className='p-5 flex flex-col gap-2 grow'>
                 {/* Title */}
-                <h2 className='font-bold text-lg'>{activity.place_name}</h2>
-                <p className='text-sm text-gray-400 line-clamp-2'>{activity.place_details}</p>
+                <h2 className='font-bold text-lg text-white'>{activity.place_name}</h2>
+                <p className='text-sm text-white/60 line-clamp-2'>{activity.place_details}</p>
 
                 {/* Footer Section */}
                 <div className='mt-auto'>
-                    <div className='flex items-center justify-between'>
-                        <div className='flex items-center gap-1 text-xs text-gray-500'>
-                            <Clock className='w-3 h-3' />
+                    <div className='flex items-center justify-between mb-3'>
+                        <div className='flex items-center gap-1.5 text-xs text-white/50'>
+                            <Clock className='w-3.5 h-3.5' />
                             {activity.time_to_travel}
                         </div>
-                        <div className='flex items-center gap-1 text-xs text-gray-500'>
-                            <Ticket className='w-3 h-3' />
+                        <div className='flex items-center gap-1.5 text-xs text-emerald-400'>
+                            <Ticket className='w-3.5 h-3.5' />
                             {activity.ticket_pricing}
                         </div>
                     </div>
@@ -62,11 +64,11 @@ function PlaceCardItem({ activity }: Props) {
                     <Link
                         href={`https://www.google.com/maps/search/?api=1&query=${activity.place_name},${activity.place_address}`}
                         target='_blank'
-                        className='w-full mt-2 block'
+                        className='w-full block'
                     >
-                        <Button className='w-full h-8 text-xs bg-black text-white px-3 py-1 border border-black hover:bg-primary/20 flex items-center justify-center gap-2'>
+                        <button className='w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2'>
                             View on Map <ExternalLink className='h-4 w-4' />
-                        </Button>
+                        </button>
                     </Link>
                 </div>
             </div>
