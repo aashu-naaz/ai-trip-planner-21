@@ -1,64 +1,98 @@
 "use client";
 
-import React from "react";
-import { Sliders, Sparkles, Navigation } from "lucide-react";
-
-const steps = [
-  {
-    icon: <Sliders className="h-7 w-7 text-cyan-300" />,
-    title: "Tell us your preferences",
-    desc: "Share your interests, budget, travel style, and dates so our AI understands your perfect trip.",
-  },
-  {
-    icon: <Sparkles className="h-7 w-7 text-violet-300" />,
-    title: "AI builds your itinerary",
-    desc: "Our AI instantly generates a personalized trip plan with routes, stays, and hidden gems.",
-  },
-  {
-    icon: <Navigation className="h-7 w-7 text-fuchsia-300" />,
-    title: "Travel smarter & faster",
-    desc: "Navigate effortlessly with optimized routes, real-time insights, and AI guidance.",
-  },
-];
+import { motion } from "framer-motion";
+import { SlidersHorizontal, Sparkles, Send } from "lucide-react";
 
 export default function HowItWorks() {
-  return (
-    <section className="relative overflow-hidden py-28">
-      {/* Background glow */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-500/20 blur-[120px]" />
-        <div className="absolute right-1/4 bottom-0 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-[120px]" />
-      </div>
+  const steps = [
+    {
+      icon: <SlidersHorizontal size={28} />,
+      title: "Tell Us Your Preferences",
+      description:
+        "Share your interests, budget, travel style, and dates so our AI understands your perfect journey.",
+    },
+    {
+      icon: <Sparkles size={28} />,
+      title: "AI Builds Your Itinerary",
+      description:
+        "Our AI instantly generates a personalized travel plan with optimized routes, stays, and hidden gems.",
+    },
+    {
+      icon: <Send size={28} />,
+      title: "Travel Smarter & Faster",
+      description:
+        "Navigate effortlessly with real-time insights, recommendations, and intelligent travel guidance.",
+    },
+  ];
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 text-center">
-        <h2 className="mb-16 text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_0_30px_rgba(168,85,247,0.35)] md:text-5xl">
-          How it Works
+  return (
+    <section className="relative py-28 px-8">
+
+      {/* ===== Title ===== */}
+      <div className="text-center mb-20">
+        <h2
+          className="
+          text-5xl md:text-6xl font-extrabold
+          bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400
+          bg-clip-text text-transparent
+          tracking-tight
+        "
+        >
+          How It Works
         </h2>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:-translate-y-3 hover:bg-white/10 hover:shadow-[0_0_60px_rgba(168,85,247,0.25)]"
-            >
-              {/* Hover gradient */}
-              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-500/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <p className="text-white/60 mt-4 max-w-xl mx-auto">
+          Plan your journey in three intelligent steps powered by AI.
+        </p>
+      </div>
 
-              {/* Icon */}
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-inner transition-transform duration-300 group-hover:scale-110">
+      {/* ===== Cards ===== */}
+      <div className="grid md:grid-cols-3 gap-10">
+
+        {steps.map((step, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ scale: 1.04 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="
+              relative rounded-3xl p-[1px]
+              bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-cyan-400/30
+            "
+          >
+            <div
+              className="
+                rounded-3xl bg-black/40 backdrop-blur-xl
+                p-10 text-center
+                border border-white/10
+                hover:border-cyan-400/40
+                transition duration-300
+              "
+            >
+              {/* Icon Circle */}
+              <div
+                className="
+                  w-16 h-16 mx-auto mb-6
+                  flex items-center justify-center
+                  rounded-full
+                  bg-white/5
+                  border border-white/10
+                  text-cyan-400
+                "
+              >
                 {step.icon}
               </div>
 
-              <h3 className="mb-4 text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold mb-4 text-white">
                 {step.title}
               </h3>
 
-              <p className="text-sm leading-relaxed text-white/70 md:text-base">
-                {step.desc}
+              <p className="text-white/60 text-sm leading-relaxed">
+                {step.description}
               </p>
             </div>
-          ))}
-        </div>
+          </motion.div>
+        ))}
+
       </div>
     </section>
   );

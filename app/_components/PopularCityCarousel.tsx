@@ -10,45 +10,64 @@ export default function PopularCityCarousel() {
 
   return (
     <>
-      <div className="relative py-12 overflow-hidden">
-        <div className="flex gap-6 px-6 overflow-x-auto scrollbar-hide">
+      <section className="relative py-24 px-8 overflow-visible">
+
+        {/* ===== TITLE ===== */}
+        <div className="text-center mb-16">
+          <h2 className="
+            text-5xl md:text-6xl font-extrabold
+            bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400
+            bg-clip-text text-transparent
+            tracking-tight
+          ">
+            Popular Destinations
+          </h2>
+        </div>
+
+        {/* ===== CAROUSEL ===== */}
+        <div className="flex gap-8 overflow-x-auto scrollbar-hide pb-10">
+
           {destinations.map((d) => (
             <motion.div
               key={d.id}
               whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 200, damping: 18 }}
               onClick={() => setActive(d)}
               className="
-                relative min-w-[320px] h-[420px]
+                relative min-w-[340px] h-[460px]
                 rounded-3xl cursor-pointer
                 bg-cover bg-center
-                border border-white/10
-                shadow-xl
+                group
               "
               style={{ backgroundImage: `url(${d.image})` }}
             >
-              {/* Glow border */}
-              <div className="absolute inset-0 rounded-3xl
-                ring-1 ring-white/10
-                hover:ring-purple-400/60
-                transition" />
-
-              {/* Bottom text */}
+              {/* Clean Neon Border */}
               <div className="
-                absolute bottom-0 w-full p-5
-                bg-gradient-to-t from-black/80 to-transparent
-                rounded-b-3xl text-white
+                absolute inset-0 rounded-3xl
+                border border-transparent
+                group-hover:border-cyan-400
+                transition duration-300
+              " />
+
+              {/* Bottom Text */}
+              <div className="
+                absolute bottom-0 w-full p-6
+                bg-gradient-to-t from-black/70 to-transparent
+                text-white
+                rounded-b-3xl
               ">
                 <p className="text-sm opacity-80">
-                  {d.title}, {d.country}
+                  {d.country}
                 </p>
-                <h3 className="text-lg font-semibold">
-                  {d.highlights[0]}
+                <h3 className="text-2xl font-semibold">
+                  {d.title}
                 </h3>
               </div>
             </motion.div>
           ))}
+
         </div>
-      </div>
+      </section>
 
       <DestinationDetails
         destination={active}
