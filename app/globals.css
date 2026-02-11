@@ -52,6 +52,9 @@
    COSMIC COLOR SYSTEM
    ================================ */
 :root {
+  /* Layout - Single source of truth */
+  --header-h: 50px;
+
   --radius: 1rem;
 
   /* Core */
@@ -66,14 +69,17 @@
   --popover-foreground: #ede9fe;
 
   /* Brand */
-  --primary: #7c3aed; /* Violet */
+  --primary: #7c3aed;
+  /* Violet */
   --primary-foreground: #ffffff;
 
-  --secondary: #8b5cf6; /* Purple */
+  --secondary: #8b5cf6;
+  /* Purple */
   --secondary-foreground: #ffffff;
 
   /* Accent glow */
-  --accent: #22d3ee; /* Cyan */
+  --accent: #22d3ee;
+  /* Cyan */
   --accent-foreground: #0b061f;
 
   /* Muted */
@@ -130,6 +136,7 @@
    UTILITIES & ANIMATIONS
    ================================ */
 @layer utilities {
+
   /* Gradient text animation */
   .animate-gradient-x {
     background-size: 200% 200%;
@@ -155,9 +162,11 @@
     0% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
+
     100% {
       background-position: 0% 50%;
     }
@@ -167,19 +176,103 @@
     0% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-12px);
     }
+
     100% {
       transform: translateY(0px);
     }
   }
+
+  /* ================================
+     PREMIUM MICRO-INTERACTIONS
+     ================================ */
+
+  /* Smooth fade-up animation for chat messages */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Gentle pulse-glow for typing indicator */
+  @keyframes pulseGlow {
+
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+    }
+
+    50% {
+      opacity: 0.85;
+      box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+    }
+  }
+
+  /* Subtle breathing animation for loader */
+  @keyframes breathe {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Smooth scale-in for interactive elements */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* ================================
+   PREMIUM ANIMATION UTILITIES
+   ================================ */
+
+/* Animation classes with calm, deliberate timing */
+.animate-fade-up {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-breathe {
+  animation: breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -193,6 +286,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -213,8 +307,13 @@
 }
 
 @keyframes starsMove {
-  from { transform: translateY(0); }
-  to { transform: translateY(-2000px); }
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-2000px);
+  }
 }
 
 /* 🌊 COSMIC WAVES */
@@ -227,8 +326,13 @@
 }
 
 @keyframes waveShift {
-  from { transform: translateX(-5%); }
-  to { transform: translateX(5%); }
+  from {
+    transform: translateX(-5%);
+  }
+
+  to {
+    transform: translateX(5%);
+  }
 }
 
 /* ✈️ AIRPLANE MOTION */
@@ -236,6 +340,7 @@
   from {
     transform: translateX(0) translateY(0);
   }
+
   to {
     transform: translateX(-200px) translateY(40px);
   }
@@ -246,13 +351,23 @@
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spin-slower {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 .animate-spin-slow {
@@ -269,6 +384,7 @@
     transform: translateY(0);
     opacity: 0.4;
   }
+
   to {
     transform: translateY(-140px);
     opacity: 0.15;
@@ -285,10 +401,12 @@
     transform: scale(1);
     opacity: 0.7;
   }
+
   50% {
     transform: scale(1.08);
     opacity: 0.9;
   }
+
   100% {
     transform: scale(1);
     opacity: 0.7;
@@ -304,6 +422,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -334,6 +453,7 @@
   from {
     background-position: 0 0;
   }
+
   to {
     background-position: 10000px 5000px;
   }
@@ -344,6 +464,7 @@
   from {
     transform: scale(1.1);
   }
+
   to {
     transform: scale(1.15);
   }
@@ -371,6 +492,7 @@
   from {
     background-position: 0 0;
   }
+
   to {
     background-position: 12000px 6000px;
   }
@@ -381,6 +503,7 @@
   from {
     transform: scale(1.1);
   }
+
   to {
     transform: scale(1.18);
   }
@@ -391,9 +514,12 @@
 }
 
 @keyframes glowPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
   }
+
   50% {
     box-shadow: 0 0 35px rgba(217, 70, 239, 0.9);
   }

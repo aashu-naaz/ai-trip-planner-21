@@ -23,7 +23,7 @@ interface TripInfo {
   itinerary: any
 }
 
-export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?: TripInfo }) => {
+export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEntry[], tripData?: TripInfo, scrollContainer?: React.RefObject<HTMLDivElement | null> }) => {
   const ref = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
@@ -38,6 +38,7 @@ export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?:
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 10%", "end 50%"],
+    container: scrollContainer // Use the passed container for scroll tracking
   });
 
   const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
@@ -50,18 +51,18 @@ export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?:
     >
       <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10">
         <h2 className="text-lg md:text-4xl mb-4 text-black dark:text-white max-w-4xl font-bold">
-          Your Trip Itinerary from <span className='text-orange-600'>{tripData?.origin}</span> to <span className='text-orange-600'>{tripData?.destination}</span> is Ready
+          Your Trip Itinerary from <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent'>{tripData?.origin}</span> to <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent'>{tripData?.destination}</span> is Ready
         </h2>
 
         <div className='flex gap-5 text-gray-600 dark:text-gray-400 mt-5'>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Calendar className='h-5 w-5 text-orange-600' /> {tripData?.duration}
+            <Calendar className='h-5 w-5 text-violet-400' /> {tripData?.duration}
           </div>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Wallet className='h-5 w-5 text-orange-600' /> {tripData?.budget} Budget
+            <Wallet className='h-5 w-5 text-violet-400' /> {tripData?.budget} Budget
           </div>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Users className='h-5 w-5 text-orange-600' /> {tripData?.group_size} Travelers
+            <Users className='h-5 w-5 text-violet-400' /> {tripData?.group_size} Travelers
           </div>
         </div>
       </div>
@@ -70,6 +71,7 @@ export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?:
         {data.map((item, index) => (
           <div
             key={index}
+            id={item.title.toLowerCase().replace(/\s/g, '-')}
             className="flex justify-start pt-5 md:pt-10 md:gap-5"
           >
             <div className="flex flex-col md:flex-row items-center self-start max-w-xs lg:max-w-sm md:w-auto">
@@ -100,7 +102,7 @@ export const Timeline = ({ data, tripData }: { data: TimelineEntry[], tripData?:
               height: heightTransform,
               opacity: opacityTransform,
             }}
-            className="absolute inset-x-0 top-0  w-[2px] bg-gradient-to-t from-transparent via-transparent to-transparent from-[0%] via-[10%] rounded-full"
+            className="absolute inset-x-0 top-0  w-[2px] bg-gradient-to-t from-purple-500 via-fuchsia-500 to-transparent from-[0%] via-[10%] rounded-full"
           />
         </div>
       </div>

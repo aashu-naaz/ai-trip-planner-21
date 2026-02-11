@@ -1,11 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import TypingPlaceholder from "./TypingPlaceholder";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Send } from "lucide-react";
 
 export default function Hero() {
   const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState("");
+  const router = useRouter();
+
+  const handleStartTrip = () => {
+    if (inputValue.trim()) {
+      router.push(`/create-new-trip?q=${encodeURIComponent(inputValue)}`);
+    } else {
+      router.push('/create-new-trip');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleStartTrip();
+    }
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -61,26 +78,30 @@ export default function Hero() {
             Our AI handles everything.
           </p>
 
-          {/* AI typing prompt */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="flex w-full sm:w-[520px] items-center rounded-full bg-white/10 backdrop-blur-md px-6 py-4 text-white/70 text-left">
-              <TypingPlaceholder />
-              <span className="ml-1 animate-pulse">|</span>
+          {/* Functional Input */}
+          <div className="mt-10 flex items-center justify-center p-4">
+            <div className="relative w-full sm:w-[520px] max-w-full group">
+              {/* Glow effect */}
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 opacity-10 blur-sm transition group-focus-within:opacity-40 group-focus-within:duration-200" />
+
+              <div className="relative flex items-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-purple-500/50">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Tell me your dream destination..."
+                  className="w-full bg-transparent border-none px-6 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-0 text-base sm:text-lg"
+                />
+
+                <button
+                  onClick={handleStartTrip}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white shadow-lg shadow-purple-500/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-
-            {/* Glow button */}
-            <button
-              className="group relative flex items-center gap-2 rounded-full px-6 py-4 font-semibold text-white
-              bg-gradient-to-r from-purple-500 to-fuchsia-500
-              shadow-[0_0_20px_rgba(168,85,247,0.5)]
-              hover:shadow-[0_0_40px_rgba(217,70,239,0.9)]
-              hover:scale-105 transition-all duration-300"
-            >
-              <span className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-100
-                bg-gradient-to-r from-purple-500 to-fuchsia-500 transition duration-500" />
-
-              <span className="relative z-10">✈ Create Trip</span>
-            </button>
           </div>
         </div>
       </div>

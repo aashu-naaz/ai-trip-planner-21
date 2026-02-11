@@ -90,6 +90,8 @@ export default function GlobalMap() {
 
 
     return (
-        <div ref={mapContainerRef} className="rounded-lg" style={{ width: '100%', height: '100%', borderRadius: 10 }}></div>
+        <div className='h-full w-full p-6'>
+            <div ref={mapContainerRef} className="rounded-lg h-full w-full" style={{ borderRadius: 10 }}></div>
+        </div>
     );
 }

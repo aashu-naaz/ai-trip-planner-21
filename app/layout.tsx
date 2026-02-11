@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Journey — AI-powered trip planner",
+  title: "SmartJourney — AI-powered trip planner",
   description: "Plan smarter journeys with AI",
 };
 
