@@ -1,6 +1,8 @@
 import Hero from "./_components/Hero";
-import { PopularCityList } from "./_components/PopularCityList";
+import PopularCityCarousel from "./_components/PopularCityCarousel";
 import HowItWorks from "./_components/HowItWorks";
+
+
 
 export default function Home() {
   return (
@@ -13,7 +15,8 @@ export default function Home() {
 
       {/* Popular Cities */}
       <section className="relative z-10">
-        <PopularCityList />
+       <PopularCityCarousel />
+
       </section>
 
       {/* Divider */}

@@ -1,0 +1,38 @@
+export const destinations = [
+  {
+    id: "paris",
+    title: "Paris",
+    country: "France",
+    image: "/destinations/paris.jpg",
+    description: "The city of lights, romance, art, and history.",
+    bestTime: "April to June, September to October",
+    highlights: ["Eiffel Tower", "Louvre", "Seine River"],
+  },
+  {
+    id: "newyork",
+    title: "New York",
+    country: "USA",
+    image: "/destinations/newyork.jpg",
+    description: "The city that never sleeps.",
+    bestTime: "April to June, September to November",
+    highlights: ["Times Square", "Central Park", "Broadway"],
+  },
+  {
+    id: "tokyo",
+    title: "Tokyo",
+    country: "Japan",
+    image: "/destinations/tokyo.jpg",
+    description: "Where tradition meets the future.",
+    bestTime: "March to May, October to November",
+    highlights: ["Shibuya", "Cherry Blossoms", "Temples"],
+  },
+  {
+    id: "rome",
+    title: "Rome",
+    country: "Italy",
+    image: "/destinations/rome.jpg",
+    description: "Ancient history and timeless beauty.",
+    bestTime: "April to June, September to October",
+    highlights: ["Colosseum", "Vatican", "Roman Forum"],
+  },
+];

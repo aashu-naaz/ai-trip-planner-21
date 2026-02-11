@@ -1,85 +1,80 @@
 "use client";
 
-import React from "react";
-import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
+import { useState } from "react";
+import Image from "next/image";
+import { destinations } from "./destinations";
+import { X } from "lucide-react";
 
-export function PopularCityList() {
-  const cards = data.map((card, index) => (
-    <Card key={card.src} card={card} index={index} layout />
-  ));
+export default function PopularCityList() {
+  const [active, setActive] = useState<null | typeof destinations[0]>(null);
 
   return (
-    <section className="relative w-full py-24 overflow-hidden">
-      {/* Section glow */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/4 top-0 h-72 w-72 rounded-full bg-violet-500/20 blur-[120px]" />
-        <div className="absolute right-1/4 bottom-0 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-[120px]" />
-      </div>
-
-      <h2 className="mx-auto mb-12 max-w-7xl px-4 text-center text-2xl font-extrabold tracking-tight text-white drop-shadow-[0_0_20px_rgba(168,85,247,0.35)] md:text-4xl">
+    <section className="relative px-6 py-20">
+      <h2 className="text-4xl font-bold text-center mb-12">
         Popular Destinations
       </h2>
 
-      <Carousel items={cards} />
+      {/* Glow Border */}
+      <div className="relative rounded-3xl p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400">
+        <div className="rounded-3xl bg-black/40 backdrop-blur-xl p-6">
+          {/* Carousel */}
+          <div className="flex gap-6 overflow-x-auto scrollbar-hide">
+            {destinations.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setActive(item)}
+                className="min-w-[280px] h-[380px] rounded-2xl overflow-hidden cursor-pointer relative group"
+              >
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-sm opacity-80">{item.country}</p>
+                  <h3 className="text-xl font-semibold">{item.title}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Info Panel */}
+      {active && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end"
+          onClick={() => setActive(null)}
+        >
+          <div
+            className="w-full sm:w-[420px] h-full bg-[#0b061a] p-6 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-4 right-4"
+              onClick={() => setActive(null)}
+            >
+              <X size={28} />
+            </button>
+
+            <h3 className="text-3xl font-bold mb-2">{active.title}</h3>
+            <p className="opacity-80 mb-4">{active.description}</p>
+
+            <p className="mb-2">
+              <span className="font-semibold">Best time:</span>{" "}
+              {active.bestTime}
+            </p>
+
+            <ul className="list-disc pl-5 space-y-1 mt-4">
+              {active.highlights.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
-
-/* ================================
-   Card Content (Cosmic)
-   ================================ */
-const DummyContent = () => {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-      <p className="mx-auto max-w-3xl text-base font-light text-white/80 md:text-lg">
-        <span className="font-semibold text-white">
-          Discover breathtaking destinations across the globe.
-        </span>{" "}
-        Let our AI craft the perfect itinerary with hidden gems, smart routes,
-        and personalized travel experiences — from flights to hotels.
-      </p>
-    </div>
-  );
-};
-
-/* ================================
-   Destination Data
-   ================================ */
-const data = [
-  {
-    category: "Paris, France",
-    title: "Explore the City of Lights — Eiffel Tower, Louvre & more",
-    src: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2600&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-  {
-    category: "New York, USA",
-    title: "Experience NYC — Times Square, Central Park, Broadway",
-    src: "https://plus.unsplash.com/premium_photo-1661954654458-c673671d4a08?q=80&w=1170&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-  {
-    category: "Tokyo, Japan",
-    title: "Discover Tokyo — Shibuya, Cherry Blossoms, Temples",
-    src: "https://images.unsplash.com/photo-1522547902298-51566e4fb383?q=80&w=735&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-  {
-    category: "Rome, Italy",
-    title: "Walk Through History — Colosseum, Vatican, Roman Forum",
-    src: "https://plus.unsplash.com/premium_photo-1675975678457-d70708bf77c8?q=80&w=1170&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-  {
-    category: "Dubai, UAE",
-    title: "Luxury & Innovation — Burj Khalifa, Desert Safari",
-    src: "https://images.unsplash.com/photo-1526495124232-a04e1849168c?q=80&w=687&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-  {
-    category: "India",
-    title: "Culture & Heritage — Palaces, Temples & Landscapes",
-    src: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1171&auto=format&fit=crop",
-    content: <DummyContent />,
-  },
-];
