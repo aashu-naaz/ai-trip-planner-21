@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as chat from "../chat.js";
+import type * as savedPlaces from "../savedPlaces.js";
 import type * as tripDetail from "../tripDetail.js";
 import type * as user from "../user.js";
 
@@ -18,6 +20,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  chat: typeof chat;
+  savedPlaces: typeof savedPlaces;
   tripDetail: typeof tripDetail;
   user: typeof user;
 }>;
