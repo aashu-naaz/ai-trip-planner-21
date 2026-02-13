@@ -3,18 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Sparkles } from "lucide-react";
 
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 40);
-    };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const pathname = usePathname();
 
   return (
     <>
@@ -38,13 +31,11 @@ export default function Header() {
 
       <header
         className={`
-          fixed top-0 left-0 w-screen z-50
+          fixed top-0 left-0 w-full z-50
           flex items-center px-10
-          h-[var(--header-h)]
+          py-4
           transition-all duration-300
-          ${scrolled
-            ? "backdrop-blur-2xl bg-black/60 border-b border-white/10"
-            : "backdrop-blur-xl bg-black/35"}
+          backdrop-blur-md bg-black/20 border-b border-white/10
         `}
       >
         <div className="mx-auto flex max-w-7xl w-full items-center justify-between">
@@ -62,10 +53,10 @@ export default function Header() {
 
             <span
               className={`
-                font-[var(--font-playfair)]
+                font-(--font-playfair)
                 font-semibold
                 tracking-wide
-                bg-gradient-to-r
+                bg-linear-to-r
                 from-violet-300
                 via-purple-400
                 to-cyan-400
@@ -81,63 +72,85 @@ export default function Header() {
           </Link>
 
           {/* NAV */}
-          <nav className="hidden md:flex items-center gap-12">
+          <nav className="hidden md:flex items-center gap-10">
             {[
               { name: "Home", path: "/" },
               { name: "Pricing", path: "/pricing" },
               { name: "Contact us", path: "/contact-us" },
-            ].map((item) => (
-              <Link
-                key={item.name}
-                href={item.path}
-                className="
-                  font-[var(--font-playfair)]
-                  text-base
-                  tracking-widest
-                  uppercase
-                  text-white/75
-                  hover:text-white
-                  transition
-                  relative
-                  after:absolute
-                  after:left-0
-                  after:-bottom-1
-                  after:h-[1px]
-                  after:w-0
-                  after:bg-gradient-to-r
-                  after:from-purple-400
-                  after:to-cyan-400
-                  after:transition-all
-                  hover:after:w-full
-                "
-              >
-                {item.name}
-              </Link>
-            ))}
+            ].map((item) => {
+              const isActive = pathname === item.path;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  className={`
+                    relative
+                    font-medium
+                    tracking-wide
+                    text-base
+                    transition-colors duration-300
+                    ${isActive ? "text-white" : "text-white/60 hover:text-white"}
+                  `}
+                >
+                  {item.name}
+
+                  {/* Active Indicator (Glowing Dot) */}
+                  {isActive && (
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-linear-to-r from-purple-500 to-cyan-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* ACTIONS */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/create-new-trip"
-              className="
+            {pathname === '/create-new-trip' || pathname.startsWith('/view-trip') ? (
+              <Link
+                href="/my-trips"
+                className="
                 rounded-full
-                bg-gradient-to-r
-                from-purple-500
-                to-violet-600
+                bg-white/10
+                backdrop-blur-md
+                border border-white/20
                 px-6
                 py-2
                 text-sm
                 font-medium
                 text-white
                 shadow-lg
-                shadow-purple-500/40
+                hover:bg-white/20
                 hover:scale-105
                 transition
               "
-            >
-              Create New Trip
-            </Link>
+              >
+                My Trips
+              </Link>
+            ) : (
+              <Link
+                href="/create-new-trip"
+                className="
+                flex items-center gap-2
+                rounded-full
+                bg-linear-to-r
+                from-indigo-500
+                to-purple-600
+                px-6
+                py-2.5
+                text-sm
+                font-bold
+                text-white
+                shadow-lg
+                shadow-indigo-500/30
+                hover:shadow-indigo-500/50
+                hover:scale-105
+                transition-all duration-300
+              "
+              >
+                <Sparkles className="w-4 h-4 text-white fill-white/20" />
+                Create New Trip
+              </Link>
+            )}
 
             <UserButton afterSignOutUrl="/" />
           </div>

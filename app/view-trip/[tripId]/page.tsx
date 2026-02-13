@@ -13,6 +13,8 @@ import dynamic from 'next/dynamic';
 const GlobalMap = dynamic(() => import('@/app/create-new-trip/_components/GlobalMap'), { ssr: false });
 
 
+import TripHeader from '../_components/TripHeader';
+
 function ViewTrip() {
     const { tripId } = useParams();
     const { userDetail, setUserDetail } = useUserDetail();
@@ -75,21 +77,29 @@ function ViewTrip() {
     }
 
     return (
-        <div className='p-10 md:px-10 lg:px-10 xl:px-10 py-5 fixed bottom-0 top-16 left-0 right-0 overflow-hidden'>
+        <div className='p-0 md:p-0 lg:p-0 xl:p-0 fixed bottom-0 top-16 left-0 right-0 overflow-hidden'>
 
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-10 h-full'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-0 h-full'>
                 {/* Itinerary Section */}
-                <div className='overflow-y-auto h-full pb-20 scrollbar-hide'>
-                    <Itinerary />
+                <div className='overflow-y-auto h-full pb-20'>
+                    {/* Header - Full Width now */}
+                    <div className="px-6 md:px-10 pt-6">
+                        <TripHeader trip={tripDetailInfo} />
+                    </div>
+
+                    {/* Information Section */}
+                    <div className="px-6 md:px-10">
+                        <InfoSection trip={tripDetailInfo} />
+                        <Itinerary />
+                    </div>
                 </div>
 
                 {/* Globe Section */}
-                <div className='h-full relative'>
+                <div className='h-full relative border-l border-white/10'>
                     <div className='hidden md:block h-full w-full'>
                         <GlobalMap />
                     </div>
-                    {/* Mobile Globe View - Keep it hidden for now or simpler logic if needed, but user didn't ask for mobile specifics this time, just "half page" */}
                 </div>
             </div>
         </div>

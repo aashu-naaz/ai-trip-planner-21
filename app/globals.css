@@ -53,7 +53,7 @@
    ================================ */
 :root {
   /* Layout - Single source of truth */
-  --header-h: 50px;
+  --header-h: 60px;
 
   --radius: 1rem;
 
@@ -129,6 +129,25 @@
       linear-gradient(to bottom, #05010d, #0b061f, #12082f);
 
     background-attachment: fixed;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
   }
 }
 

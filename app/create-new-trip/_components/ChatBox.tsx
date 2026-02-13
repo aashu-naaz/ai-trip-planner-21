@@ -3,13 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useEffect, useRef } from 'react'
 import { Send, Loader, Sparkles, Wand2, Bot } from 'lucide-react'
+import { toast } from 'sonner';
 import EmptyBoxState from './EmptyBoxState';
 import GroupSizeUi from './GroupSizeUi';
 import BudgetUi from './BudgetUi';
 import TripDurationUi from './TripDurationUi';
+import InterestsUi from './InterestsUi';
+import TravelPaceUi from './TravelPaceUi';
+import TripStyleUi from './TripStyleUi';
 import axios from 'axios';
 import GeneratingTripUi from './GeneratingTripUi';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
@@ -52,12 +56,21 @@ export type TripInfo = {
     duration: string,
     group_size: string,
     origin: string,
+    interests?: string[],
+    travel_pace?: string,
+    trip_style?: string,
     hotels: Hotel[],
     itinerary: ItineraryDay[]
 }
 
 function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
-    const [messages, setMessages] = useState<Message[]>([])
+    // Session management for persistence
+    const [tripId, setTripId] = useState<string | null>(null);
+
+    // Fetch messages from Convex
+    const convexMessages = useQuery(api.chat.getMessages, tripId ? { tripId } : "skip");
+    const saveMessage = useMutation(api.chat.sendMessage);
+
     const [userInput, setUserInput] = useState<string>('')
     const [isLoading, setIsLoading] = useState(false)
     const [isFinal, setIsFinal] = useState(false)
@@ -74,6 +87,16 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
     const getCurrentTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    // Initialize Trip ID
+    useEffect(() => {
+        let id = localStorage.getItem('currentDraftTripId');
+        if (!id) {
+            id = uuidv4();
+            localStorage.setItem('currentDraftTripId', id);
+        }
+        setTripId(id);
+    }, []);
+
     const scrollToBottom = () => {
         setTimeout(() => {
             if (messagesContainerRef.current) {
@@ -84,40 +107,48 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
     useEffect(() => {
         const query = searchParams.get('q');
-        if (query && !initialized.current) {
+        if (query && !initialized.current && tripId) {
             initialized.current = true;
             sendMessage(query);
             // Clean URL without refresh
             router.replace('/create-new-trip', { scroll: false });
         }
-    }, [searchParams]);
+    }, [searchParams, tripId]);
 
+    // Auto-scroll to bottom moved to separate useEffect
     useEffect(() => {
         scrollToBottom()
-    }, [messages, isLoading])
+    }, [convexMessages, isLoading])
 
-    useEffect(() => {
-        const lastMsg = messages[messages.length - 1];
-        if (lastMsg?.ui == 'final') {
-            setIsFinal(true);
-            setUserInput('Ok, Great!')
-        }
-    }, [messages])
-
-    useEffect(() => {
-        if (isFinal && userInput) {
-            onSend();
-        }
-    }, [isFinal]);
 
     const onSaveTrip = async () => {
-        const result = await SaveTripDetail({
-            tripId: uuidv4(),
-            tripDetail: tripDetail,
-            uid: userDetail?._id
-        })
-        console.log(result)
-        router.push('/my-trips')
+        const user = userDetail;
+        if (!user) {
+            toast.error("User not found. Please sign in to save your trip.");
+            return;
+        }
+
+        if (!tripId) {
+            toast.error("Error: persistent trip ID not found.");
+            return;
+        }
+
+        try {
+            const result = await SaveTripDetail({
+                tripId: tripId, // Use the persistent ID
+                tripDetail: tripDetail,
+                uid: user._id
+            });
+            console.log(result);
+            // Optionally clear the draft ID so a new one is generated next time
+            localStorage.removeItem('currentDraftTripId');
+
+            toast.success("Trip saved successfully!");
+            router.push('/my-trips');
+        } catch (error) {
+            console.error("Error saving trip:", error);
+            toast.error("Failed to save trip. Please try again.");
+        }
     }
 
     const onSend = () => {
@@ -125,56 +156,73 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
     }
 
     const sendMessage = async (text: string) => {
-        if (!text.trim()) return;
+        if (!text.trim() || !tripId) return;
 
-        const newMsg: Message = {
+        const timestamp = getCurrentTime();
+
+        // Optimistically update UI or just rely on Convex (which is fast)
+        // We'll rely on Convex, but we need to trigger the AI call.
+
+        // 1. Save User Message
+        await saveMessage({
+            tripId,
             role: 'user',
             content: text,
-            timestamp: getCurrentTime()
-        }
+            timestamp
+        });
 
-        setMessages((prev) => [...prev, newMsg])
         setUserInput('')
         setIsLoading(true)
 
+        // Prepare messages for API context
+        // We need existing messages + the new one
+        const currentHistory = convexMessages?.map(m => ({ role: m.role, content: m.content })) || [];
+        const apiMessages = [...currentHistory, { role: 'user', content: text }];
+
         try {
             const result = await axios.post('/api/arcjet/aimodel', {
-                messages: [...messages, { role: 'user', content: text }],
+                messages: apiMessages,
                 isFinal: isFinal
             })
 
-            if (isFinal && result.data.trip_plan) {
+            if (result.data.trip_plan) {
                 const tripPlan = result.data.trip_plan as TripInfo;
                 setTripDetail(tripPlan);
                 setTripData?.(tripPlan);
                 setTripDetailInfo(tripPlan);
 
-                setMessages((prev) => [...prev, {
+                // 2. Save AI Response (Final)
+                await saveMessage({
+                    tripId,
                     role: 'assistant',
-                    content: "Your trip is generated.",
-                    ui: 'tripResult',
+                    content: "Your trip is generated. Click the button below to view it.",
+                    ui: 'final',
                     timestamp: getCurrentTime()
-                }])
+                });
+
                 setIsFinal(false);
             } else {
-                const aiContent = result.data.resp;
+                const aiContent = result.data.resp || "I successfully processed that, but I have no text to show. Please continue.";
                 const aiUi = result.data.ui;
 
-                setMessages((prev) => [...prev, {
+                // 2. Save AI Response (Intermediate)
+                await saveMessage({
+                    tripId,
                     role: 'assistant',
                     content: aiContent,
                     ui: aiUi,
                     timestamp: getCurrentTime()
-                }])
+                });
             }
 
         } catch (error) {
             console.error(error);
-            setMessages((prev) => [...prev, {
+            await saveMessage({
+                tripId,
                 role: 'assistant',
                 content: "Something went wrong. Please try again.",
                 timestamp: getCurrentTime()
-            }])
+            });
         } finally {
             setIsLoading(false)
         }
@@ -188,6 +236,12 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                 return <BudgetUi onOptionSelect={sendMessage} />
             case 'tripDuration':
                 return <TripDurationUi onOptionSelect={sendMessage} />
+            case 'interests':
+                return <InterestsUi onSelect={(values) => sendMessage(values.join(', '))} />
+            case 'travelPace':
+                return <TravelPaceUi onSelect={sendMessage} />
+            case 'tripStyle':
+                return <TripStyleUi onSelect={sendMessage} />
             case 'final':
                 return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail} />
             default:
@@ -202,15 +256,17 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
         }
     };
 
+    const messagesToDisplay = convexMessages || [];
+
     return (
         <div className='h-full flex flex-col overflow-hidden relative'>
             {/* Dark cosmic gradient background */}
-            <div className='absolute inset-0 bg-gradient-to-b from-indigo-950 via-purple-950 to-black/95 pointer-events-none' />
+            <div className='absolute inset-0 bg-linear-to-b from-indigo-950 via-purple-950 to-black/95 pointer-events-none' />
 
             {/* Chat Header */}
             <div className='shrink-0 px-5 py-4 border-b border-white/10 backdrop-blur-xl bg-white/5 relative z-10'>
                 <div className='flex items-center gap-3'>
-                    <div className='w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30'>
+                    <div className='w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30'>
                         <Sparkles className='w-5 h-5 text-white' />
                     </div>
                     <div>
@@ -222,14 +278,18 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
             {/* Scrollable Messages Area */}
             <div ref={messagesContainerRef} className='flex-1 overflow-y-auto px-5 py-5 relative z-10 min-h-0 scroll-smooth'>
-                {messages.length === 0 && !isLoading ? (
+                {convexMessages === undefined ? (
+                    <div className='flex items-center justify-center h-full'>
+                        <Loader className='animate-spin text-white/50' />
+                    </div>
+                ) : messagesToDisplay.length === 0 && !isLoading ? (
                     <EmptyBoxState setMsg={sendMessage} />
                 ) : (
                     <div className='flex flex-col gap-4 pb-4'>
-                        {messages.map((msg, index) => (
+                        {messagesToDisplay.map((msg, index) => (
                             <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-fade-up`} style={{ animationDelay: `${index * 0.05}s` }}>
                                 <div className={`px-4 py-3 max-w-[85%] transition-all duration-300 ${msg.role === 'user'
-                                    ? 'rounded-[20px_20px_4px_20px] bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] text-sm leading-relaxed'
+                                    ? 'rounded-[20px_20px_4px_20px] bg-linear-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] text-sm leading-relaxed'
                                     : 'rounded-[20px_20px_20px_4px] backdrop-blur-xl bg-white/5 border border-white/10 text-white/90 shadow-lg text-sm leading-relaxed'
                                     }`}>
                                     {msg.content}
@@ -278,7 +338,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                     />
                     <Button
                         size='icon'
-                        className={`absolute bottom-2 right-2 h-9 w-9 transition-all bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(217,70,239,0.7)] hover:scale-105 rounded-full ${!userInput.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`absolute bottom-2 right-2 h-9 w-9 transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(217,70,239,0.7)] hover:scale-105 rounded-full ${!userInput.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={onSend}
                         disabled={!userInput.trim() || isLoading}
                     >

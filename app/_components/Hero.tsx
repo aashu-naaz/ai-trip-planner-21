@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send } from "lucide-react";
+import { Send, MapPinned, Star, Globe } from "lucide-react";
 
 export default function Hero() {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -62,12 +62,12 @@ export default function Hero() {
       {/* Content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex min-h-screen items-center justify-center px-6 text-center transition-transform duration-200 ease-out"
+        className="relative z-10 flex min-h-screen items-start justify-center px-6 pt-32 text-center transition-transform duration-200 ease-out"
       >
         <div className="max-w-5xl">
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
             Your AI-powered{" "}
-            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
               personal trip planner
             </span>
           </h1>
@@ -82,7 +82,7 @@ export default function Hero() {
           <div className="mt-10 flex items-center justify-center p-4">
             <div className="relative w-full sm:w-[520px] max-w-full group">
               {/* Glow effect */}
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 opacity-10 blur-sm transition group-focus-within:opacity-40 group-focus-within:duration-200" />
+              <div className="absolute -inset-1 rounded-full bg-linear-to-r from-purple-600 to-cyan-500 opacity-10 blur-sm transition group-focus-within:opacity-40 group-focus-within:duration-200" />
 
               <div className="relative flex items-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-purple-500/50">
                 <input
@@ -96,7 +96,7 @@ export default function Hero() {
 
                 <button
                   onClick={handleStartTrip}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white shadow-lg shadow-purple-500/20 transition-all hover:scale-105 active:scale-95"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white shadow-lg shadow-purple-500/20 transition-all hover:scale-105 active:scale-95"
                 >
                   <Send className="w-5 h-5" />
                 </button>
@@ -105,6 +105,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-    </section>
+    </section >
   );
 }

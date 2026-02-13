@@ -10,7 +10,7 @@ export default function PopularCityCarousel() {
 
   return (
     <>
-      <section className="relative py-24 px-8 overflow-visible">
+      <section className="relative py-16 px-6 max-w-7xl mx-auto overflow-visible">
 
         {/* ===== TITLE ===== */}
         <div className="text-center mb-16">

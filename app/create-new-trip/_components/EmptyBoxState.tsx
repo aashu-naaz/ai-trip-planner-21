@@ -7,7 +7,7 @@ type Props = {
 
 function EmptyBoxState({ setMsg }: Props) {
     return (
-        <div className='flex flex-col items-center justify-center px-6 py-12 h-full'>
+        <div className='flex flex-col items-center justify-center px-6 py-12 min-h-full w-full'>
             <h2 className='text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent tracking-tight text-center'>
                 Start Planning Your <span className='bg-gradient-to-r from-fuchsia-400 to-cyan-400 bg-clip-text text-transparent'>Journey</span>
             </h2>

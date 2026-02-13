@@ -21,11 +21,17 @@ export async function POST(req: NextRequest) {
         },
             config);
 
-        const placeRefName = result.data?.places[0]?.photos[0]?.name;
+        const placeRefName = result.data?.places?.[0]?.photos?.[0]?.name;
+        if (!placeRefName) {
+            console.log("No placeRefName found for:", placeName);
+            console.log("API Response:", JSON.stringify(result.data, null, 2));
+            return NextResponse.json(null);
+        }
         const PhotoRefUrl = `https://places.googleapis.com/v1/${placeRefName}/media?maxHeightPx=1000&maxWidthPx=1000&key=${apiKey}`
         return NextResponse.json(PhotoRefUrl);
     }
     catch (e) {
-        return NextResponse.json({ error: e instanceof Error ? e.message : String(e) })
+        console.error("Google Place API Error:", e);
+        return NextResponse.json(null)
     }
 }

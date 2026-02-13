@@ -13,5 +13,19 @@ export default defineSchema({
         tripId: v.string(),
         tripDetail: v.any(),
         uid: v.string(),
-    })
+    }),
+    SavedPlacesTable: defineTable({
+        userId: v.string(), // Use string to match UserTable logic if needed, or v.id('UserTable')
+        placeName: v.string(),
+        placeType: v.string(), // 'hotel' | 'activity'
+        notes: v.optional(v.string()), // Personal notes can live here too if we treat "saved" == "interacted"
+        metadata: v.any() // Store full object ref for fast retrieval
+    }).index("by_user", ["userId"]),
+    messages: defineTable({
+        tripId: v.string(),
+        role: v.string(),
+        content: v.string(),
+        ui: v.optional(v.string()), // For UiRenderer logic
+        timestamp: v.optional(v.string())
+    }).index("by_tripId", ["tripId"]),
 })
