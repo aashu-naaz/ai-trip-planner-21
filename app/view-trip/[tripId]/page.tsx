@@ -12,7 +12,7 @@ import {
     ResizablePanelResizeHandle,
     ResizablePanel,
     ResizablePanelGroup,
-} from "../../../components/ui/resizable";
+} from "@/components/ui/resizable";
 import dynamic from 'next/dynamic';
 
 const GlobalMap = dynamic(() => import('@/app/create-new-trip/_components/GlobalMap'), { ssr: false });
@@ -85,7 +85,7 @@ function ViewTrip() {
         <div className='p-0 md:p-0 lg:p-0 xl:p-0 fixed bottom-0 top-16 left-0 right-0 overflow-hidden'>
 
 
-            <ResizablePanelGroup direction="horizontal" className="h-full">
+            <ResizablePanelGroup orientation="horizontal" className="h-full">
                 {/* Itinerary Section */}
                 <ResizablePanel defaultSize={50} minSize={30} className='overflow-y-auto h-full pb-20'>
                     {/* Header - Full Width now */}
