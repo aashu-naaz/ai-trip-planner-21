@@ -8,6 +8,11 @@ import Itinerary from '@/app/create-new-trip/_components/Itinerary';
 import { useTripDetail } from '@/app/provider';
 import InfoSection from '@/app/create-new-trip/_components/InfoSection';
 import { Plane } from 'lucide-react';
+import {
+    ResizablePanelResizeHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "../../../components/ui/resizable";
 import dynamic from 'next/dynamic';
 
 const GlobalMap = dynamic(() => import('@/app/create-new-trip/_components/GlobalMap'), { ssr: false });
@@ -25,12 +30,12 @@ function ViewTrip() {
     const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
 
     useEffect(() => {
-        tripId && userDetail && GetTrip();
-    }, [tripId, userDetail]);
+        tripId && GetTrip();
+    }, [tripId]);
 
     const GetTrip = async () => {
-        const result = await convex.query(api.tripDetail.GetTripById, {
-            uid: userDetail?._id, // This might be undefined if user is not logged in, but ignoring for now as per code
+        // Use GetTrip (public) instead of GetTripById to allow sharing and avoid userDetail timing issues
+        const result = await convex.query(api.tripDetail.GetTrip, {
             tripId: tripId as string
         });
         console.log(result);
@@ -80,9 +85,9 @@ function ViewTrip() {
         <div className='p-0 md:p-0 lg:p-0 xl:p-0 fixed bottom-0 top-16 left-0 right-0 overflow-hidden'>
 
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-0 h-full'>
+            <ResizablePanelGroup direction="horizontal" className="h-full">
                 {/* Itinerary Section */}
-                <div className='overflow-y-auto h-full pb-20'>
+                <ResizablePanel defaultSize={50} minSize={30} className='overflow-y-auto h-full pb-20'>
                     {/* Header - Full Width now */}
                     <div className="px-6 md:px-10 pt-6">
                         <TripHeader trip={tripDetailInfo} />
@@ -93,15 +98,19 @@ function ViewTrip() {
                         <InfoSection trip={tripDetailInfo} />
                         <Itinerary />
                     </div>
-                </div>
+                </ResizablePanel>
+
+                <ResizablePanelResizeHandle className="w-2 bg-neutral-800 hover:bg-purple-500 transition-colors cursor-col-resize flex items-center justify-center group z-50">
+                    <div className="h-8 w-1 bg-neutral-600 rounded-full group-hover:bg-white transition-colors" />
+                </ResizablePanelResizeHandle>
 
                 {/* Globe Section */}
-                <div className='h-full relative border-l border-white/10'>
-                    <div className='hidden md:block h-full w-full'>
+                <ResizablePanel defaultSize={50} minSize={30} className='h-full relative border-l border-white/10 hidden md:block'>
+                    <div className='h-full w-full'>
                         <GlobalMap />
                     </div>
-                </div>
-            </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
         </div>
     )
 }

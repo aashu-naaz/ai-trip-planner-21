@@ -89,13 +89,33 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
     // Initialize Trip ID
     useEffect(() => {
-        let id = localStorage.getItem('currentDraftTripId');
+        // Priority 1: Check URL params (if user clicked a saved trip or refresh)
+        let id = searchParams.get('tripId');
+
+        // Priority 2: Check localStorage (if user is returning to a draft)
+        if (!id) {
+            id = localStorage.getItem('currentDraftTripId');
+        }
+
+        // Priority 3: Generate new (if nothing found)
         if (!id) {
             id = uuidv4();
             localStorage.setItem('currentDraftTripId', id);
         }
+
         setTripId(id);
-    }, []);
+    }, [searchParams]);
+
+    // Fetch existing trip details if available (restores UI state on reload)
+    const existingTrip = useQuery(api.tripDetail.GetTrip, tripId ? { tripId } : "skip");
+
+    useEffect(() => {
+        if (existingTrip && existingTrip.tripDetail) {
+            setTripDetail(existingTrip.tripDetail);
+            setTripData?.(existingTrip.tripDetail);
+            setTripDetailInfo(existingTrip.tripDetail);
+        }
+    }, [existingTrip]);
 
     const scrollToBottom = () => {
         setTimeout(() => {
@@ -122,33 +142,18 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
 
     const onSaveTrip = async () => {
-        const user = userDetail;
-        if (!user) {
-            toast.error("User not found. Please sign in to save your trip.");
-            return;
-        }
+        if (!tripId) return;
 
-        if (!tripId) {
-            toast.error("Error: persistent trip ID not found.");
-            return;
-        }
-
-        try {
-            const result = await SaveTripDetail({
-                tripId: tripId, // Use the persistent ID
+        // Ensure trip is saved before navigating (retry mechanism)
+        if (userDetail && tripDetail) {
+            await SaveTripDetail({
+                tripId: tripId,
                 tripDetail: tripDetail,
-                uid: user._id
+                uid: userDetail._id
             });
-            console.log(result);
-            // Optionally clear the draft ID so a new one is generated next time
-            localStorage.removeItem('currentDraftTripId');
-
-            toast.success("Trip saved successfully!");
-            router.push('/my-trips');
-        } catch (error) {
-            console.error("Error saving trip:", error);
-            toast.error("Failed to save trip. Please try again.");
         }
+
+        router.push('/view-trip/' + tripId);
     }
 
     const onSend = () => {
@@ -159,9 +164,6 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
         if (!text.trim() || !tripId) return;
 
         const timestamp = getCurrentTime();
-
-        // Optimistically update UI or just rely on Convex (which is fast)
-        // We'll rely on Convex, but we need to trigger the AI call.
 
         // 1. Save User Message
         await saveMessage({
@@ -175,7 +177,6 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
         setIsLoading(true)
 
         // Prepare messages for API context
-        // We need existing messages + the new one
         const currentHistory = convexMessages?.map(m => ({ role: m.role, content: m.content })) || [];
         const apiMessages = [...currentHistory, { role: 'user', content: text }];
 
@@ -190,6 +191,22 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                 setTripDetail(tripPlan);
                 setTripData?.(tripPlan);
                 setTripDetailInfo(tripPlan);
+
+                // Auto-save the trip
+                if (userDetail) {
+                    await SaveTripDetail({
+                        tripId: tripId,
+                        tripDetail: tripPlan,
+                        uid: userDetail._id
+                    });
+
+                    // Update URL with tripId without reloading
+                    const newUrl = `/create-new-trip?tripId=${tripId}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+
+                    // Clear draft ID so next time user clicks "Create New Trip", they get a fresh session
+                    localStorage.removeItem('currentDraftTripId');
+                }
 
                 // 2. Save AI Response (Final)
                 await saveMessage({
@@ -243,7 +260,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
             case 'tripStyle':
                 return <TripStyleUi onSelect={sendMessage} />
             case 'final':
-                return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail} />
+                return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail && !existingTrip} />
             default:
                 return null;
         }
@@ -317,7 +334,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                                     <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                                     <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce"></span>
                                 </div>
-                                <span className="text-[10px] text-white/30 mt-1 px-1">AI is thinking...</span>
+                                <span className="text-[10px] text-white/30 mt-1 px-1">SmartJourney is thinking...</span>
                             </div>
                         )}
 
@@ -335,6 +352,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={handleKeyDown}
+                        suppressHydrationWarning
                     />
                     <Button
                         size='icon'
