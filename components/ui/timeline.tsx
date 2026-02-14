@@ -46,48 +46,50 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
 
   return (
     <div
-      className="w-full bg-transparent dark:bg-neutral-950 font-sans md:px-10"
+      className="w-full bg-transparent dark:bg-neutral-950 font-sans md:px-10 print:bg-transparent print:px-0"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10">
-        <h2 className="text-lg md:text-4xl mb-4 text-white max-w-4xl font-bold">
-          Your Trip Itinerary from <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent'>{tripData?.origin}</span> to <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent'>{tripData?.destination}</span> is Ready
+      <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10 print:py-0 print:px-0">
+        <h2 className="text-lg md:text-4xl mb-4 text-white print:text-black max-w-4xl font-bold">
+          Your Trip Itinerary from <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent print:text-black print:bg-none'>{tripData?.origin}</span> to <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent print:text-black print:bg-none'>{tripData?.destination}</span> is Ready
         </h2>
 
-        <div className='flex gap-5 text-gray-300 mt-5'>
+        <div className='flex gap-5 text-gray-300 print:text-gray-700 mt-5'>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Calendar className='h-5 w-5 text-violet-400' /> {tripData?.duration}
+            <Calendar className='h-5 w-5 text-violet-400 print:text-violet-600' /> {tripData?.duration}
           </div>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Wallet className='h-5 w-5 text-violet-400' /> {tripData?.budget} Budget
+            <Wallet className='h-5 w-5 text-violet-400 print:text-violet-600' /> {tripData?.budget} Budget
           </div>
           <div className='flex gap-2 items-center text-sm md:text-base'>
-            <Users className='h-5 w-5 text-violet-400' /> {tripData?.group_size} Travelers
+            <Users className='h-5 w-5 text-violet-400 print:text-violet-600' /> {tripData?.group_size} Travelers
           </div>
         </div>
       </div>
 
-      <div ref={ref} className="relative max-w-7xl mx-auto pb-5">
+      <div ref={ref} className="relative max-w-7xl mx-auto pb-5 print:pb-0">
         {data.map((item, index) => (
           <div
             key={index}
             id={item.title.toLowerCase().replace(/\s/g, '-')}
-            className="flex justify-start pt-5 md:pt-10 md:gap-5"
+            className="flex justify-start pt-5 md:pt-10 md:gap-5 print:pt-5 print:block"
           >
-            <div className="flex flex-col md:flex-row items-center self-start max-w-xs lg:max-w-sm md:w-auto">
-              <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-white dark:bg-black flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 p-2" />
+            <div className="flex flex-col md:flex-row items-center self-start max-w-xs lg:max-w-sm md:w-auto print:mb-4">
+              <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-white dark:bg-black flex items-center justify-center print:border print:border-gray-200">
+                <div className="h-4 w-4 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 p-2 print:border-gray-400 print:bg-gray-200" />
               </div>
-              <h3 className="hidden md:block text-xl md:pl-20 md:text-2xl font-bold text-neutral-300 whitespace-nowrap">
+              <h3 className="hidden md:block text-xl md:pl-20 md:text-2xl font-bold text-neutral-300 whitespace-nowrap print:text-black print:whitespace-normal">
                 {item.title}
               </h3>
             </div>
 
-            <div className="relative pl-20 pr-4 md:pl-4 w-full">
-              <h3 className="md:hidden block text-2xl mb-4 text-left font-bold text-neutral-300 whitespace-nowrap">
+            <div className="relative pl-20 pr-4 md:pl-4 w-full print:pl-20">
+              <h3 className="md:hidden block text-2xl mb-4 text-left font-bold text-neutral-300 whitespace-nowrap print:text-black print:mb-2">
                 {item.title}
               </h3>
-              {item.content}{" "}
+              <div className="print:text-black">
+                {item.content}
+              </div>
             </div>
           </div>
         ))}
@@ -95,14 +97,14 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
           style={{
             height: height + "px",
           }}
-          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 dark:via-neutral-700 to-transparent to-[99%]  [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] "
+          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 dark:via-neutral-700 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] print:hidden"
         >
           <motion.div
             style={{
               height: heightTransform,
               opacity: opacityTransform,
             }}
-            className="absolute inset-x-0 top-0  w-[2px] bg-gradient-to-t from-purple-500 via-fuchsia-500 to-transparent from-[0%] via-[10%] rounded-full"
+            className="absolute inset-x-0 top-0 w-[2px] bg-gradient-to-t from-purple-500 via-fuchsia-500 to-transparent from-[0%] via-[10%] rounded-full"
           />
         </div>
       </div>

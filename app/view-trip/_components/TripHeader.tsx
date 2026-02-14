@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { MapPin, Calendar, Wallet, Users, Share2, Sparkles } from 'lucide-react'
+import { MapPin, Calendar, Wallet, Users, Share2, Sparkles, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import axios from 'axios'
+import { toast } from 'sonner';
 
-function TripHeader({ trip }: { trip: any }) {
+function TripHeader({ trip, onPrint }: { trip: any, onPrint?: () => void }) {
     const [photoUrl, setPhotoUrl] = useState<string>();
 
     useEffect(() => {
@@ -81,9 +82,24 @@ function TripHeader({ trip }: { trip: any }) {
                         </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className='flex gap-3 animate-fade-up' style={{ animationDelay: '0.1s' }}>
-                        <Button className='bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full'>
+                    {/* Action Buttons - Hidden when printing */}
+                    <div className='flex gap-3 animate-fade-up print:hidden' style={{ animationDelay: '0.1s' }}>
+                        {onPrint && (
+                            <Button
+                                onClick={onPrint}
+                                className='bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full'
+                            >
+                                <Printer className='w-4 h-4 mr-2' />
+                                Download PDF
+                            </Button>
+                        )}
+                        <Button
+                            onClick={() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                toast.success("Link copied to clipboard!");
+                            }}
+                            className='bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full'
+                        >
                             <Share2 className='w-4 h-4 mr-2' />
                             Share Mission
                         </Button>

@@ -42,7 +42,8 @@ function Provider({
     <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
       <TripDetailContext.Provider value={{ tripDetailInfo, setTripDetailInfo }}>
         <div className={pathname === '/create-new-trip' ? 'bg-[#fce7f3] min-h-screen transition-colors duration-500' : ''}>
-          <Header />
+          {/* Hide Header on print page */}
+          {!pathname?.startsWith('/print-trip') && <Header />}
           {children}
         </div>
       </TripDetailContext.Provider>

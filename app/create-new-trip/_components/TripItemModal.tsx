@@ -50,7 +50,7 @@ function TripItemModal({ isOpen, onClose, item }: Props) {
 
     // Check if saved
     const savedPlace = useQuery((api as any).savedPlaces.GetSavedPlace,
-        (userDetail && item) ? { userId: userDetail?.email || userDetail?._id, placeName: item.title } : "skip"
+        (userDetail && item && item.title) ? { userId: userDetail?.email || userDetail?._id, placeName: item.title } : "skip"
     );
 
     // Sync note state when savedPlace loads

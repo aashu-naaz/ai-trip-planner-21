@@ -35,7 +35,7 @@ function PlaceCardItem({ activity }: Props) {
     return (
         <>
             <div
-                className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-cyan-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer'
+                className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-cyan-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block'
                 onClick={() => setIsModalOpen(true)}
             >
                 {/* Image Section */}
@@ -45,23 +45,24 @@ function PlaceCardItem({ activity }: Props) {
                         alt={activity.place_name}
                         fill
                         className='object-cover transition-transform duration-700 group-hover:scale-110'
+                        priority
                     />
-                    <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent' />
+                    <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent print:hidden' />
 
-                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full'>
-                        <span className='text-xs font-semibold text-cyan-300'>{activity.time_to_travel}</span>
+                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full print:bg-white print:border-gray-200'>
+                        <span className='text-xs font-semibold text-cyan-300 print:text-cyan-700'>{activity.time_to_travel}</span>
                     </div>
                 </div>
 
                 {/* Content Section */}
-                <div className='p-6 flex flex-col gap-3 grow'>
+                <div className='p-6 flex flex-col gap-3 grow print:grow-0 print:block'>
                     <div>
-                        <h2 className='font-bold text-lg text-white mb-2 line-clamp-1 group-hover:text-cyan-300 transition-colors'>{activity.place_name}</h2>
-                        <p className='text-sm text-white/60 line-clamp-2 leading-relaxed'>{activity.place_details}</p>
+                        <h2 className='font-bold text-lg text-white mb-2 line-clamp-1 group-hover:text-cyan-300 transition-colors print:text-black'>{activity.place_name}</h2>
+                        <p className='text-sm text-white/60 line-clamp-2 leading-relaxed print:text-gray-700'>{activity.place_details}</p>
                     </div>
 
                     <div className='mt-auto space-y-4'>
-                        <div className='flex items-center gap-2 text-xs text-white/50 border-t border-white/10 pt-4'>
+                        <div className='flex items-center gap-2 text-xs text-white/50 border-t border-white/10 pt-4 print:text-gray-500 print:border-gray-200'>
                             <Ticket className='w-3.5 h-3.5 text-fuchsia-400' />
                             <span>{activity.ticket_pricing}</span>
                         </div>

@@ -130,28 +130,51 @@ export default function GlobalMap() {
             });
         });
 
-        // 🌀 Auto-Rotation Logic
-        const stopSpin = () => (isUserInteracting.current = true);
-        map.on("mousedown", stopSpin);
-        map.on("dragstart", stopSpin);
-        map.on("wheel", stopSpin);
-        map.on("touchstart", stopSpin);
-
         // Disable auto-rotation on mobile for better performance/ux
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+        let animationFrameId: number;
 
+        // 🌀 Auto-Rotation Logic
         const spin = () => {
-            if (!mapRef.current || isUserInteracting.current || isMobile) return;
+            // Always schedule the next frame to keep the loop alive
+            animationFrameId = requestAnimationFrame(spin);
+
+            if (!mapRef.current || isMobile || document.hidden) return;
+            if (isUserInteracting.current) return;
             if (map.getZoom() > 4) return; // Only spin when zoomed out
+
             const center = map.getCenter();
-            center.lng -= 0.03; // Spin speed
+            center.lng -= 0.05; // Spin speed
             map.easeTo({ center, duration: 1000, easing: (n) => n });
         };
 
-        const timer = isMobile ? null : setInterval(spin, 120);
+        // Restart interaction after timeout
+        const restartSpin = () => {
+            isUserInteracting.current = false;
+        };
+
+        // Events to stop spinning on interaction
+        map.on("mousedown", () => { isUserInteracting.current = true; });
+        map.on("dragstart", () => { isUserInteracting.current = true; });
+
+        // Resume spinning when interaction ends
+        map.on("mouseup", restartSpin);
+        map.on("touchend", restartSpin);
+        map.on("dragend", restartSpin);
+        map.on("moveend", () => {
+            // Optional: Add a small delay if needed, but simple reset works for now
+            if (!map.isMoving()) {
+                isUserInteracting.current = false;
+            }
+        });
+
+        // Start animation
+        if (!isMobile) {
+            spin();
+        }
 
         return () => {
-            if (timer) clearInterval(timer);
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
             map.remove();
             mapRef.current = null;
         };

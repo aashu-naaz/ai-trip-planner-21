@@ -46,7 +46,7 @@ function HotelCardItem({ hotel }: Props) {
 
     return (
         <>
-            <div className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-purple-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer' onClick={() => setIsModalOpen(true)}>
+            <div className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-purple-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block' onClick={() => setIsModalOpen(true)}>
 
                 {/* Image Section */}
                 <div className='relative h-[240px] w-full overflow-hidden'>
@@ -55,29 +55,30 @@ function HotelCardItem({ hotel }: Props) {
                         alt={hotel?.hotel_name || 'Hotel Image'}
                         fill
                         className='object-cover transition-transform duration-700 group-hover:scale-110'
+                        priority
                     />
-                    <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent' />
+                    <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent print:hidden' />
 
                     {/* Floating Rating */}
-                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full flex items-center gap-1'>
+                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full flex items-center gap-1 print:bg-white print:border-gray-200'>
                         <Star className='w-3.5 h-3.5 text-yellow-400 fill-yellow-400' />
-                        <span className='text-xs font-semibold text-white'>{hotel?.rating}</span>
+                        <span className='text-xs font-semibold text-white print:text-black'>{hotel?.rating}</span>
                     </div>
                 </div>
 
                 {/* Content Section */}
-                <div className='p-6 flex flex-col gap-4 grow'>
+                <div className='p-6 flex flex-col gap-4 grow print:grow-0 print:block'>
                     <div>
-                        <h2 className='font-bold text-xl text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors'>{hotel?.hotel_name}</h2>
-                        <div className='flex items-start gap-2 text-white/60 text-sm'>
-                            <MapPin className='w-4 h-4 mt-0.5 shrink-0 text-cyan-400' />
+                        <h2 className='font-bold text-xl text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors print:text-black'>{hotel?.hotel_name}</h2>
+                        <div className='flex items-start gap-2 text-white/60 text-sm print:text-gray-700'>
+                            <MapPin className='w-4 h-4 mt-0.5 shrink-0 text-cyan-400 print:text-cyan-600' />
                             <span className='line-clamp-2'>{hotel?.hotel_address}</span>
                         </div>
                     </div>
 
                     <div className='mt-auto space-y-4'>
-                        <div className='flex justify-between items-center border-t border-white/10 pt-4'>
-                            <div className='flex items-center gap-2 text-purple-200'>
+                        <div className='flex justify-between items-center border-t border-white/10 pt-4 print:border-gray-200'>
+                            <div className='flex items-center gap-2 text-purple-200 print:text-purple-700'>
                                 <BadgeDollarSign className='w-4 h-4' />
                                 <span className='text-sm font-medium'>{hotel?.price_per_night || hotel?.price}</span>
                             </div>

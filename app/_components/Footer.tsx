@@ -17,9 +17,11 @@ function Footer() {
                     <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl mx-auto">
                         Join thousands of travelers building their dream itineraries with AI in seconds.
                     </p>
-                    <button className="bg-white text-black font-bold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform shadow-xl hover:shadow-2xl">
-                        Start Planning →
-                    </button>
+                    <Link href="/create-new-trip">
+                        <button className="bg-white text-black font-bold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform shadow-xl hover:shadow-2xl">
+                            Start Planning →
+                        </button>
+                    </Link>
                 </div>
             </div>
 

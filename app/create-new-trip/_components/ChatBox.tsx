@@ -63,7 +63,7 @@ export type TripInfo = {
     itinerary: ItineraryDay[]
 }
 
-function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
+function ChatBox({ setTripData, onPrint }: { setTripData?: (trip: TripInfo) => void, onPrint?: () => void }) {
     // Session management for persistence
     const [tripId, setTripId] = useState<string | null>(null);
 
@@ -156,12 +156,32 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
         router.push('/view-trip/' + tripId);
     }
 
+    const handleReset = () => {
+        const newTripId = uuidv4();
+        setTripId(newTripId);
+        localStorage.setItem('currentDraftTripId', newTripId);
+        setTripDetail(undefined);
+        setTripData?.(undefined as any);
+        setTripDetailInfo(null); // Clear context
+        setIsFinal(false);
+        setUserInput('');
+        toast("Chat reset! Starting a new trip.");
+    };
+
     const onSend = () => {
         sendMessage(userInput)
     }
 
     const sendMessage = async (text: string) => {
-        if (!text.trim() || !tripId) return;
+        if (!text.trim()) return;
+
+        // Check for reset commands
+        if (['reset', 'start over', 'new trip', 'restart'].includes(text.trim().toLowerCase())) {
+            handleReset();
+            return;
+        }
+
+        if (!tripId) return;
 
         const timestamp = getCurrentTime();
 
@@ -260,7 +280,7 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
             case 'tripStyle':
                 return <TripStyleUi onSelect={sendMessage} />
             case 'final':
-                return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail && !existingTrip} />
+                return <GeneratingTripUi viewTrip={onSaveTrip} disable={!tripDetail && !existingTrip} onPrint={onPrint} tripId={tripId} />
             default:
                 return null;
         }
@@ -282,8 +302,12 @@ function ChatBox({ setTripData }: { setTripData?: (trip: TripInfo) => void }) {
 
             {/* Chat Header */}
             <div className='shrink-0 px-5 py-4 border-b border-white/10 backdrop-blur-xl bg-white/5 relative z-10'>
-                <div className='flex items-center gap-3'>
-                    <div className='w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30'>
+                <div
+                    className='flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity group'
+                    onClick={handleReset}
+                    title="Start New Chat"
+                >
+                    <div className='w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform'>
                         <Sparkles className='w-5 h-5 text-white' />
                     </div>
                     <div>

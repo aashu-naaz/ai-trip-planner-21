@@ -30,7 +30,7 @@ function UserTripCard({ trip }: { trip: any }) {
 
     return (
         <Link href={'/view-trip/' + (trip?.tripId || trip?.id)} className='group'>
-            <div className='relative overflow-hidden rounded-3xl bg-black/20 border border-white/10 shadow-lg group-hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:scale-[1.02] transition-all duration-300'>
+            <div className='relative overflow-hidden rounded-3xl bg-black/20 border border-white/10 shadow-lg group-hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300'>
 
                 {/* Image Container with Aspect Ratio */}
                 <div className='relative h-[250px] w-full'>

@@ -18,14 +18,14 @@ function MyTrips() {
     });
 
     return (
-        <div className='min-h-screen pt-[var(--header-h)] pb-10 px-5 md:px-20 lg:px-36 bg-gradient-to-b from-black via-gray-900 to-black text-white relative overflow-hidden'>
+        <div className='min-h-screen pt-36 pb-10 px-5 md:px-20 lg:px-36 bg-gradient-to-b from-black via-gray-900 to-black text-white relative overflow-hidden'>
 
             {/* Background Elements */}
             <div className='absolute top-0 left-0 w-full h-[500px] bg-purple-900/20 blur-[120px] pointer-events-none' />
 
             <div className='relative z-10'>
                 <h2 className='font-bold text-4xl mb-10 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent inline-block'>
-                    My Cosmic Voyages
+                    My Travel Collection
                 </h2>
 
                 {userTrips?.length == 0 ? (
