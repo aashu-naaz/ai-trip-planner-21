@@ -32,7 +32,7 @@ export default function Header() {
       <header
         className={`
           fixed top-0 left-0 w-full z-50
-          flex items-center px-10
+          flex items-center px-4 md:px-10
           py-4
           transition-all duration-300
           backdrop-blur-md bg-black/20 border-b border-white/10

@@ -64,7 +64,7 @@ function Itinerary() {
 
 
     return (
-        <div ref={scrollContainerRef} className='p-6 h-full overflow-y-auto scroll-smooth bg-black/20 print:p-0 print:h-auto print:overflow-visible print:block print:bg-transparent'>
+        <div ref={scrollContainerRef} className='p-4 md:p-6 h-full overflow-y-auto scroll-smooth bg-black/20 print:p-0 print:h-auto print:overflow-visible print:block print:bg-transparent'>
             <Timeline data={data} tripData={tripData || undefined} scrollContainer={scrollContainerRef} />
         </div>
     )

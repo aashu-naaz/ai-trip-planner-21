@@ -380,11 +380,11 @@ function ChatBox({ setTripData, onPrint }: { setTripData?: (trip: TripInfo) => v
                     />
                     <Button
                         size='icon'
-                        className={`absolute bottom-2 right-2 h-9 w-9 transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(217,70,239,0.7)] hover:scale-105 rounded-full ${!userInput.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`absolute bottom-2 right-2 h-11 w-11 transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(217,70,239,0.7)] hover:scale-105 rounded-full ${!userInput.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={onSend}
                         disabled={!userInput.trim() || isLoading}
                     >
-                        {isLoading ? <Loader className='h-4 w-4 animate-spin' /> : <Send className='h-4 w-4' />}
+                        {isLoading ? <Loader className='h-5 w-5 animate-spin' /> : <Send className='h-5 w-5' />}
                     </Button>
                 </div>
                 <p className="text-center text-[10px] text-white/30 mt-2">

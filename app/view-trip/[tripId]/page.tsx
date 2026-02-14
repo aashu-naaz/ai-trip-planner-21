@@ -99,12 +99,12 @@ function ViewTrip() {
                     {/* Printable Area Wrapper */}
                     <div ref={componentRef} className="h-full">
                         {/* Header - Full Width now */}
-                        <div className="px-6 md:px-10 pt-6">
+                        <div className="px-4 md:px-6 lg:px-10 pt-6">
                             <TripHeader trip={tripDetailInfo} onPrint={handlePrint} />
                         </div>
 
                         {/* Information Section */}
-                        <div className="px-6 md:px-10">
+                        <div className="px-4 md:px-6 lg:px-10">
                             <InfoSection trip={tripDetailInfo} />
                             <WeatherSection coordinates={mapPoints[0]} />
                             <Itinerary />

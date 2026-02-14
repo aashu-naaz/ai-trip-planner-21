@@ -59,7 +59,7 @@ function CreateNewTrip() {
                 <GlobalMap />
               </div>
 
-              <div className='absolute bottom-10 left-1/2 -translate-x-1/2 z-10 print:hidden'>
+              <div className='absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-10 print:hidden'>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button size={'lg'}

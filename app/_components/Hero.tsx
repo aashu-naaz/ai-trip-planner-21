@@ -62,7 +62,7 @@ export default function Hero() {
       {/* Content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex min-h-screen items-start justify-center px-6 pt-32 text-center transition-transform duration-200 ease-out"
+        className="relative z-10 flex min-h-screen items-start justify-center px-4 sm:px-6 pt-32 text-center transition-transform duration-200 ease-out"
       >
         <div className="max-w-5xl">
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
@@ -96,9 +96,9 @@ export default function Hero() {
 
                 <button
                   onClick={handleStartTrip}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white shadow-lg shadow-purple-500/20 transition-all hover:scale-105 active:scale-95"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white shadow-lg shadow-purple-500/20 transition-all hover:scale-105 active:scale-95"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-6 h-6" />
                 </button>
               </div>
             </div>
