@@ -62,10 +62,10 @@ export default function Hero() {
       {/* Content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex min-h-screen items-start justify-center px-4 sm:px-6 pt-32 text-center transition-transform duration-200 ease-out"
+        className="relative z-10 flex min-h-screen items-center justify-center px-4 sm:px-6 pt-20 text-center transition-transform duration-200 ease-out"
       >
         <div className="max-w-5xl">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white text-center">
             Your AI-powered{" "}
             <span className="bg-linear-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
               personal trip planner

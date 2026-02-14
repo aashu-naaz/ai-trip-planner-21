@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useTripDetail } from "@/app/provider";
-import dynamic from 'next/dynamic';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
 
@@ -36,11 +35,18 @@ export default function GlobalMap() {
             projection: "globe" as any,
             center: [20, 15], // Initial view
             zoom: 1.5,
+            minZoom: 1, // Prevent zooming out too far
+            maxZoom: 18, // Allow detailed street-level zoom
             pitch: 0,
             attributionControl: false,
         });
 
         mapRef.current = map;
+
+        // Enable manual globe rotation and interactions
+        map.dragRotate.enable();
+        map.touchZoomRotate.enable();
+        map.scrollZoom.enable();
 
         map.on("load", () => {
             map.resize();
@@ -247,7 +253,7 @@ export default function GlobalMap() {
                 source.setData({ type: "FeatureCollection", features });
 
                 // Auto-zoom to fit all filtered locations
-                if (features.length > 0 && filter !== 'all') {
+                if (features.length > 0) {
                     // Stop auto-rotation when zooming to specific filter
                     isUserInteracting.current = true;
 
@@ -263,6 +269,16 @@ export default function GlobalMap() {
                         maxZoom: 12,
                         duration: 1500
                     });
+
+                    // Resize map after fitBounds for globe projection
+                    setTimeout(() => {
+                        map.resize();
+                    }, 50);
+
+                    // Resume auto-rotation after zoom completes
+                    setTimeout(() => {
+                        isUserInteracting.current = false;
+                    }, 2000);
                 }
             }
         };
@@ -270,7 +286,7 @@ export default function GlobalMap() {
         if (map.isStyleLoaded()) {
             updateSource();
         } else {
-            map.once("style.load", updateSource);
+            map.once("load", updateSource);
         }
     }, [tripDetailInfo, filter]);
 
@@ -299,7 +315,7 @@ export default function GlobalMap() {
     }
 
     return (
-        <div className="relative w-full h-full bg-[#0b0b19]">
+        <div className="relative w-full h-screen bg-[#0b0b19]">
             {/* MAP CONTAINER */}
             <div
                 ref={mapContainer}

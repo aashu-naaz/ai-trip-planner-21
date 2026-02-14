@@ -32,11 +32,13 @@ function Footer() {
                     {/* Column 1: Brand & Socials */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-linear-to-tr from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                                <MapPin className="text-white w-6 h-6" />
-                            </div>
+                            <img
+                                src="/logo.svg"
+                                alt="SmartJourney Logo"
+                                className="w-10 h-10 rounded-full border border-white/20 shadow-xl"
+                            />
                             <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-purple-400 to-cyan-400">
-                                Smart Journey
+                                SmartJourney
                             </span>
                         </div>
                         <p className="text-gray-400 text-sm leading-relaxed">
@@ -95,7 +97,7 @@ function Footer() {
 
                 {/* Copyright */}
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-                    <p>© 2024 Smart Journey AI. All rights reserved.</p>
+                    <p>© 2024 SmartJourney AI. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
                         <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
