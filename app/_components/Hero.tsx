@@ -92,6 +92,7 @@ export default function Hero() {
                   onKeyDown={handleKeyDown}
                   placeholder="Tell me your dream destination..."
                   className="w-full bg-transparent border-none px-6 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-0 text-base sm:text-lg"
+                  suppressHydrationWarning
                 />
 
                 <button

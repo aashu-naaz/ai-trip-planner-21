@@ -345,14 +345,35 @@ export async function POST(request: NextRequest) {
     // 3. Convert OpenAI messages to Gemini history format
     // OpenAI: [{role: 'user'|'assistant'|'system', content: string}]
     // Gemini: history: [{role: 'user'|'model', parts: [{text: string}]}]
-    const history = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model', // Map 'assistant' to 'model'
-      parts: [{ text: msg.content }],
-    }));
 
-    const lastMessage = messages[messages.length - 1].content;
+    // Sanitize history: Merge consecutive messages from same role
+    const sanitizedMessages = messages.reduce((acc: any[], msg: any) => {
+      const role = msg.role === 'user' ? 'user' : 'model';
+      const content = msg.content;
 
-    console.log("Starting Gemini completion request...", { messageCount: messages.length });
+      if (acc.length > 0 && acc[acc.length - 1].role === role) {
+        // Append content to the last message if role is the same
+        acc[acc.length - 1].parts[0].text += `\n\n${content}`;
+      } else {
+        // Push new message
+        acc.push({
+          role: role,
+          parts: [{ text: content }],
+        });
+      }
+      return acc;
+    }, []);
+
+    // Extract the last message (which is always the user's latest input, possibly merged)
+    const lastMessageItem = sanitizedMessages.pop();
+    const lastMessage = lastMessageItem ? lastMessageItem.parts[0].text : "";
+    const history = sanitizedMessages;
+
+    console.log("Starting Gemini completion request...", {
+      originalMessageCount: messages.length,
+      sanitizedHistoryCount: history.length,
+      lastMessageLength: lastMessage.length
+    });
 
     // 4. Start Chat and Send Message
     const chatSession = model.startChat({
