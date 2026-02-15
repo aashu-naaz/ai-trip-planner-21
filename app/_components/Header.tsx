@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 
 export default function Header() {
   const pathname = usePathname();
+  const { isSignedIn, isLoaded } = useUser();
 
   return (
     <>
@@ -62,9 +63,8 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.path}
-                  className={`relative font-medium tracking-wide text-base transition-colors duration-300 ${
-                    isActive ? "text-white" : "text-white/60 hover:text-white"
-                  }`}
+                  className={`relative font-medium tracking-wide text-base transition-colors duration-300 ${isActive ? "text-white" : "text-white/60 hover:text-white"
+                    }`}
                 >
                   {item.name}
                   {isActive && (
@@ -77,24 +77,48 @@ export default function Header() {
 
           {/* ACTIONS */}
           <div className="flex items-center gap-4">
-            {pathname === '/create-new-trip' || pathname.startsWith('/view-trip') ? (
-              <Link
-                href="/my-trips"
-                className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 text-sm font-medium text-white shadow-lg hover:bg-white/20 hover:scale-105 transition"
-              >
-                My Trips
-              </Link>
+            {!isLoaded ? (
+              // Loading state - show placeholder
+              <div className="h-9 w-32 bg-white/10 rounded-full animate-pulse" />
+            ) : isSignedIn ? (
+              // Authenticated user - show trip buttons and user menu
+              <>
+                {pathname === '/create-new-trip' || pathname.startsWith('/view-trip') ? (
+                  <Link
+                    href="/my-trips"
+                    className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 text-sm font-medium text-white shadow-lg hover:bg-white/20 hover:scale-105 transition"
+                  >
+                    My Trips
+                  </Link>
+                ) : (
+                  <Link
+                    href="/create-new-trip"
+                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
+                  >
+                    <Sparkles className="w-4 h-4 text-white fill-white/20" />
+                    Create New Trip
+                  </Link>
+                )}
+                <UserButton afterSignOutUrl="/" />
+              </>
             ) : (
-              <Link
-                href="/create-new-trip"
-                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
-              >
-                <Sparkles className="w-4 h-4 text-white fill-white/20" />
-                Create New Trip
-              </Link>
+              // Not authenticated - show Sign In and Sign Up buttons
+              <>
+                <Link
+                  href="/sign-in"
+                  className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 text-sm font-medium text-white shadow-lg hover:bg-white/20 hover:scale-105 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
+                >
+                  <Sparkles className="w-4 h-4 text-white fill-white/20" />
+                  Sign Up
+                </Link>
+              </>
             )}
-
-            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </header>

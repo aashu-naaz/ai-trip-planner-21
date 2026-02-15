@@ -33,20 +33,13 @@ export default function GlobalMap() {
             container: mapContainer.current,
             style: "mapbox://styles/mapbox/streets-v12",
             projection: "globe" as any,
-            center: [20, 15], // Initial view
+            center: [20, 15],
             zoom: 1.5,
-            minZoom: 1, // Prevent zooming out too far
-            maxZoom: 18, // Allow detailed street-level zoom
             pitch: 0,
             attributionControl: false,
         });
 
         mapRef.current = map;
-
-        // Enable manual globe rotation and interactions
-        map.dragRotate.enable();
-        map.touchZoomRotate.enable();
-        map.scrollZoom.enable();
 
         map.on("load", () => {
             map.resize();
@@ -136,51 +129,27 @@ export default function GlobalMap() {
             });
         });
 
-        // Disable auto-rotation on mobile for better performance/ux
+        const stopSpin = () => (isUserInteracting.current = true);
+        map.on("mousedown", stopSpin);
+        map.on("dragstart", stopSpin);
+        map.on("wheel", stopSpin);
+        map.on("touchstart", stopSpin);
+
+        // Disable auto-rotation on mobile for better performance
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-        let animationFrameId: number;
 
-        // 🌀 Auto-Rotation Logic
         const spin = () => {
-            // Always schedule the next frame to keep the loop alive
-            animationFrameId = requestAnimationFrame(spin);
-
-            if (!mapRef.current || isMobile || document.hidden) return;
-            if (isUserInteracting.current) return;
-            if (map.getZoom() > 4) return; // Only spin when zoomed out
-
+            if (!mapRef.current || isUserInteracting.current || isMobile) return;
+            if (map.getZoom() > 4) return;
             const center = map.getCenter();
-            center.lng -= 0.05; // Spin speed
+            center.lng -= 0.03;
             map.easeTo({ center, duration: 1000, easing: (n) => n });
         };
 
-        // Restart interaction after timeout
-        const restartSpin = () => {
-            isUserInteracting.current = false;
-        };
-
-        // Events to stop spinning on interaction
-        map.on("mousedown", () => { isUserInteracting.current = true; });
-        map.on("dragstart", () => { isUserInteracting.current = true; });
-
-        // Resume spinning when interaction ends
-        map.on("mouseup", restartSpin);
-        map.on("touchend", restartSpin);
-        map.on("dragend", restartSpin);
-        map.on("moveend", () => {
-            // Optional: Add a small delay if needed, but simple reset works for now
-            if (!map.isMoving()) {
-                isUserInteracting.current = false;
-            }
-        });
-
-        // Start animation
-        if (!isMobile) {
-            spin();
-        }
+        const timer = isMobile ? null : setInterval(spin, 120);
 
         return () => {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (timer) clearInterval(timer);
             map.remove();
             mapRef.current = null;
         };
@@ -253,7 +222,7 @@ export default function GlobalMap() {
                 source.setData({ type: "FeatureCollection", features });
 
                 // Auto-zoom to fit all filtered locations
-                if (features.length > 0) {
+                if (features.length > 0 && filter !== 'all') {
                     // Stop auto-rotation when zooming to specific filter
                     isUserInteracting.current = true;
 
@@ -269,16 +238,6 @@ export default function GlobalMap() {
                         maxZoom: 12,
                         duration: 1500
                     });
-
-                    // Resize map after fitBounds for globe projection
-                    setTimeout(() => {
-                        map.resize();
-                    }, 50);
-
-                    // Resume auto-rotation after zoom completes
-                    setTimeout(() => {
-                        isUserInteracting.current = false;
-                    }, 2000);
                 }
             }
         };
@@ -286,7 +245,7 @@ export default function GlobalMap() {
         if (map.isStyleLoaded()) {
             updateSource();
         } else {
-            map.once("load", updateSource);
+            map.once("style.load", updateSource);
         }
     }, [tripDetailInfo, filter]);
 
@@ -300,8 +259,7 @@ export default function GlobalMap() {
             isUserInteracting.current = true;
             map.flyTo({
                 center: feature.geometry.coordinates,
-                zoom: 14,
-                essential: true
+                zoom: 14
             });
         }
     };

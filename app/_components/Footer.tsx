@@ -8,7 +8,7 @@ function Footer() {
             {/* --- Final CTA Section --- */}
             <div className="relative w-full py-24 px-6 overflow-hidden">
                 <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-pink-600 to-cyan-600 opacity-90" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+                <div className="absolute inset-0 opacity-20 noise-texture" />
 
                 <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
                     <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight">
