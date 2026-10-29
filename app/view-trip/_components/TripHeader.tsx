@@ -1,65 +1,55 @@
-import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { MapPin, Calendar, Wallet, Users, Share2, Sparkles, Printer } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import axios from 'axios'
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import type { TripInfo } from "@/app/create-new-trip/_components/ChatBox";
+import { Button } from '@/components/ui/button';
+import { usePlacePhoto } from "@/hooks/use-place-photo";
+import { Calendar,Printer,Share2,Sparkles,Users,Wallet } from 'lucide-react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 
-function TripHeader({ trip, onPrint }: { trip: any, onPrint?: () => void }) {
-    const [photoUrl, setPhotoUrl] = useState<string>();
-
-    useEffect(() => {
-        trip && GetGooglePlaceDetail();
-    }, [trip])
-
-    const GetGooglePlaceDetail = async () => {
-        const result = await axios.post('/api/arcjet/google-place-detail', {
-            placeName: trip?.destination
-        });
-        if (typeof result.data === 'string') {
-            setPhotoUrl(result.data);
-        }
-    }
+function TripHeader({ trip, onPrint }: { trip: TripInfo | null, onPrint?: () => void }) {
+    const photoUrl = usePlacePhoto(trip?.destination);
 
     return (
-        <div className='relative w-full h-[350px] md:h-[450px] overflow-hidden rounded-[0_0_40px_40px] shadow-[0_20px_50px_rgba(88,28,135,0.3)]'>
+        <div className='relative w-full overflow-hidden rounded-3xl shadow-lg'>
             {/* Background Image with Gradient Overlay */}
             <Image
                 src={photoUrl && typeof photoUrl === 'string' && photoUrl !== '' ? photoUrl : '/placeholder.jpg'}
                 alt='trip-destination'
                 fill
+                sizes="(max-width: 768px) 100vw, 60vw"
                 className='object-cover'
             />
+                    <PhotoCredit placeName={trip?.destination} />
             <div className='absolute inset-0 bg-linear-to-t from-indigo-950 via-purple-950/60 to-transparent' />
 
             {/* Content Container */}
-            <div className='absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20'>
-                <div className='flex flex-col md:flex-row justify-between items-end gap-6'>
+            <div className='relative z-20 flex min-h-[360px] flex-col justify-end p-5 pt-16 sm:p-8 sm:pt-20 lg:min-h-[420px]'>
+                <div className='flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6'>
 
                     {/* Title & Location */}
-                    <div className='space-y-4 max-w-2xl animate-fade-up'>
+                    <div className='min-w-0 space-y-4 max-w-2xl animate-fade-up'>
                         <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-cyan-300 shadow-lg shadow-cyan-500/20'>
                             <Sparkles className='w-3 h-3' />
-                            <span>Mission Destination</span>
+                            <span>Your destination</span>
                         </div>
                         <h1 className='text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-linear-to-r from-white via-purple-200 to-cyan-200 drop-shadow-sm'>
-                            {trip?.tripDetail?.destination}
+                            {trip?.destination}
                         </h1>
 
                         <div className='flex flex-wrap gap-3'>
                             {/* New Badges for Pace/Style */}
-                            {trip?.tripDetail?.trip_style && (
+                            {trip?.trip_style && (
                                 <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-purple-300 shadow-sm'>
-                                    <span>{trip.tripDetail.trip_style}</span>
+                                    <span>{trip.trip_style}</span>
                                 </div>
                             )}
-                            {trip?.tripDetail?.travel_pace && (
+                            {trip?.travel_pace && (
                                 <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-cyan-300 shadow-sm'>
-                                    <span>{trip.tripDetail.travel_pace}</span>
+                                    <span>{trip.travel_pace}</span>
                                 </div>
                             )}
                             {/* Interests as small tags */}
-                            {trip?.tripDetail?.interests?.map((interest: string, i: number) => (
+                            {trip?.interests?.map((interest: string, i: number) => (
                                 <div key={i} className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-xs font-medium text-white/80'>
                                     <span>#{interest}</span>
                                 </div>
@@ -69,15 +59,15 @@ function TripHeader({ trip, onPrint }: { trip: any, onPrint?: () => void }) {
 
                             <div className='flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 text-white/90 shadow-lg'>
                                 <Calendar className='w-4 h-4 text-fuchsia-400' />
-                                <span className='text-sm'>{trip?.tripDetail?.duration} Days</span>
+                                <span className='text-sm'>{trip?.duration} Days</span>
                             </div>
                             <div className='flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 text-white/90 shadow-lg'>
                                 <Wallet className='w-4 h-4 text-purple-400' />
-                                <span className='text-sm'>{trip?.tripDetail?.budget} Budget</span>
+                                <span className='text-sm'>{trip?.budget} Budget</span>
                             </div>
                             <div className='flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 text-white/90 shadow-lg'>
                                 <Users className='w-4 h-4 text-cyan-400' />
-                                <span className='text-sm'>{trip?.tripDetail?.group_size} Travelers</span>
+                                <span className='text-sm'>{trip?.group_size} Travelers</span>
                             </div>
                         </div>
                     </div>
@@ -94,14 +84,18 @@ function TripHeader({ trip, onPrint }: { trip: any, onPrint?: () => void }) {
                             </Button>
                         )}
                         <Button
-                            onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
-                                toast.success("Link copied to clipboard!");
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(window.location.href);
+                                    toast.success("Link copied to clipboard!");
+                                } catch {
+                                    toast.error("Couldn’t copy the link. You can copy it from the address bar.");
+                                }
                             }}
                             className='bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full'
                         >
                             <Share2 className='w-4 h-4 mr-2' />
-                            Share Mission
+                            Share trip
                         </Button>
                     </div>
                 </div>

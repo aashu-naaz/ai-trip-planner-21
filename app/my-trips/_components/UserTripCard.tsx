@@ -1,35 +1,17 @@
-import React, { useState, useEffect } from 'react'
-import { TripInfo } from '../../create-new-trip/_components/ChatBox'
-import Image from 'next/image'
-import Link from 'next/link'
-import axios from 'axios'
-import { MapPin, Calendar, Wallet, Users, ArrowRight } from 'lucide-react'
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import { usePlacePhoto } from "@/hooks/use-place-photo";
+import { ArrowRight,Users,Wallet } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { TripInfo } from '../../create-new-trip/_components/ChatBox';
 
-function UserTripCard({ trip }: { trip: any }) {
-    const [photoUrl, setPhotoUrl] = useState<string>();
+function UserTripCard({ trip }: { trip: { tripId: string; tripDetail: TripInfo } }) {
+    const photoUrl = usePlacePhoto(trip.tripDetail.destination);
 
-    useEffect(() => {
-        trip && GetGooglePlaceDetail();
-    }, [trip])
-
-    const GetGooglePlaceDetail = async () => {
-        // Handle both data structures (nested tripDetail or direct)
-        const destination = trip?.tripDetail?.destination || trip?.destination;
-
-        const result = await axios.post('/api/arcjet/google-place-detail', {
-            placeName: destination
-        });
-
-        // Improve: Validate that the response is actually a string URL
-        if (typeof result.data === 'string') {
-            setPhotoUrl(result.data);
-        }
-    }
-
-    const details = trip?.tripDetail || trip;
+    const details = trip.tripDetail;
 
     return (
-        <Link href={'/view-trip/' + (trip?.tripId || trip?.id)} className='group'>
+        <Link href={'/view-trip/' + trip.tripId} className='group'>
             <div className='relative overflow-hidden rounded-3xl bg-black/20 border border-white/10 shadow-lg group-hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300'>
 
                 {/* Image Container with Aspect Ratio */}
@@ -38,8 +20,10 @@ function UserTripCard({ trip }: { trip: any }) {
                         src={photoUrl && typeof photoUrl === 'string' && photoUrl !== '' ? photoUrl : '/placeholder.jpg'}
                         alt={details?.destination || 'Trip'}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                         className='object-cover transition-transform duration-700 group-hover:scale-110'
                     />
+                    <PhotoCredit linked={false} placeName={trip.tripDetail.destination} />
 
                     {/* Gradient Overlay */}
                     <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent' />
@@ -62,7 +46,7 @@ function UserTripCard({ trip }: { trip: any }) {
                             <span>{details?.budget}</span>
                         </div>
                         <div className='flex items-center gap-1.5'>
-                            <Users className='w-3.5 h-3.5 text-fuchsia-400' />
+                            <Users className='w-3.5 h-3.5 text-violet-400' />
                             <span>{details?.group_size}</span>
                         </div>
                     </div>

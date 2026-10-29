@@ -1,9 +1,8 @@
-import { Loader2, Printer } from 'lucide-react'
-import React from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 
-function GeneratingTripUi({ viewTrip, disable, onPrint, tripId }: any) {
+function GeneratingTripUi({ viewTrip, disable, tripId }: { viewTrip: () => void; disable?: boolean; onPrint?: () => void; tripId?: string | null }) {
     // Render the generating trip UI with options to view or print the itinerary
     return (
         <div className='flex flex-col items-center justify-center p-10 backdrop-blur-xl bg-gradient-to-br from-indigo-950/50 to-purple-950/50 border border-purple-500/30 rounded-[32px] w-full mt-4 shadow-[0_0_40px_rgba(124,58,237,0.4)]'>
@@ -28,7 +27,7 @@ function GeneratingTripUi({ viewTrip, disable, onPrint, tripId }: any) {
                         {tripId && (
                             <Button
                                 onClick={() => window.open(`/print-trip/${tripId}`, '_blank')}
-                                className='bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full px-6 font-semibold text-[15px] tracking-[-0.01em]'
+                                className='bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full px-6 font-semibold text-[15px] tracking-[-0.01em]'
                             >
                                 <Printer className="w-4 h-4 mr-2" />
                                 Download PDF
@@ -37,7 +36,7 @@ function GeneratingTripUi({ viewTrip, disable, onPrint, tripId }: any) {
 
                         <Button
                             onClick={viewTrip}
-                            className='bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full px-8 font-semibold text-[15px] tracking-[-0.01em]'
+                            className='bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full px-8 font-semibold text-[15px] tracking-[-0.01em]'
                         >
                             View Itinerary
                         </Button>

@@ -1,7 +1,8 @@
 "use client";
+import { m } from "motion/react";
+import { MotionCard, Reveal, Stagger } from "@/components/ui/motion";
 
-import { motion } from "framer-motion";
-import { SlidersHorizontal, Sparkles, Send } from "lucide-react";
+import { Send,SlidersHorizontal,Sparkles } from "lucide-react";
 
 export default function HowItWorks() {
   const steps = [
@@ -26,14 +27,14 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="relative py-16 px-6 max-w-7xl mx-auto">
+    <section id="how-it-works" className="relative py-16 px-6 max-w-7xl mx-auto">
 
       {/* ===== Title ===== */}
-      <div className="text-center mb-20 relative z-10">
+      <Reveal className="text-center mb-20 relative z-10">
         <h2
           className="
-          text-5xl md:text-6xl font-extrabold
-          bg-linear-to-r from-purple-400 via-pink-400 to-cyan-400
+          text-4xl sm:text-5xl md:text-6xl font-extrabold
+          bg-linear-to-r from-purple-400 via-violet-400 to-cyan-400
           bg-clip-text text-transparent
           tracking-tight
         "
@@ -44,7 +45,7 @@ export default function HowItWorks() {
         <p className="text-white/60 mt-4 max-w-xl mx-auto">
           Plan your journey in three intelligent steps powered by AI.
         </p>
-      </div>
+      </Reveal>
 
       {/* ===== Flight Path (Desktop Only) ===== */}
       <div className="absolute inset-0 hidden md:block pointer-events-none z-0">
@@ -54,10 +55,11 @@ export default function HowItWorks() {
           fill="none"
           preserveAspectRatio="none"
         >
-          <motion.path
+          <m.path
             initial={{ pathLength: 0, opacity: 0 }}
             whileInView={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 2.5, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 1.6, ease: "easeInOut" }}
             d="M 100,200 Q 400,50 600,300 T 1100,200"
             stroke="url(#flight-gradient)"
             strokeWidth="2"
@@ -66,7 +68,7 @@ export default function HowItWorks() {
           <defs>
             <linearGradient id="flight-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#A855F7" />
-              <stop offset="50%" stopColor="#EC4899" />
+              <stop offset="50%" stopColor="#8B5CF6" />
               <stop offset="100%" stopColor="#22D3EE" />
             </linearGradient>
           </defs>
@@ -74,22 +76,20 @@ export default function HowItWorks() {
       </div>
 
       {/* ===== Cards ===== */}
-      <div className="grid md:grid-cols-3 gap-10">
+      <Stagger className="grid md:grid-cols-3 gap-6 lg:gap-10">
 
         {steps.map((step, index) => (
-          <motion.div
+          <MotionCard
             key={index}
-            whileHover={{ scale: 1.04 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
             className="
               relative rounded-3xl p-px
-              bg-linear-to-br from-purple-500/30 via-pink-500/30 to-cyan-400/30
+              bg-linear-to-br from-purple-500/30 via-violet-500/30 to-cyan-400/30
             "
           >
             <div
               className="
-                rounded-3xl bg-black/40 backdrop-blur-xl
-                p-10 text-center
+                rounded-3xl bg-card
+                p-6 lg:p-10 text-center
                 border border-white/10
                 hover:border-cyan-400/40
                 transition duration-300
@@ -117,10 +117,10 @@ export default function HowItWorks() {
                 {step.description}
               </p>
             </div>
-          </motion.div>
+          </MotionCard>
         ))}
 
-      </div>
+      </Stagger>
     </section>
   );
 }

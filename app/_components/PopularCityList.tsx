@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { destinations } from "./destinations";
 import { X } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { destinations } from "./destinations";
 
 export default function PopularCityList() {
   const [active, setActive] = useState<null | typeof destinations[0]>(null);
@@ -15,7 +15,7 @@ export default function PopularCityList() {
       </h2>
 
       {/* Glow Border */}
-      <div className="relative rounded-3xl p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400">
+      <div className="relative rounded-3xl p-[2px] bg-gradient-to-r from-purple-500 via-violet-500 to-cyan-400">
         <div className="rounded-3xl bg-black/40 backdrop-blur-xl p-6">
           {/* Carousel */}
           <div className="flex gap-6 overflow-x-auto scrollbar-hide">

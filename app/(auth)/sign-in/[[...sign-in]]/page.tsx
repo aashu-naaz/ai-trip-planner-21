@@ -1,14 +1,12 @@
 "use client";
 
+import AuthShell from "@/app/_components/AuthShell";
 import { SignIn } from "@clerk/nextjs";
-import ClientOnly from "@/app/_components/ClientOnly";
 
 export default function Page() {
   return (
-    <ClientOnly>
-      <div className="flex min-h-screen items-center justify-center">
-        <SignIn />
-      </div>
-    </ClientOnly>
+    <AuthShell mode="sign-in">
+      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+    </AuthShell>
   );
 }

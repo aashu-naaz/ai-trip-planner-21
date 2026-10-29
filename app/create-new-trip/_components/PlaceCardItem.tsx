@@ -1,41 +1,25 @@
-import { Button } from '@/components/ui/button'
-import { Clock, ExternalLink, Ticket, MapPin } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
-import { Activity } from './ChatBox'
-import axios from 'axios'
-import TripItemModal from './TripItemModal'
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import { usePlacePhoto } from "@/hooks/use-place-photo";
+import { ExternalLink,Ticket } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Activity } from './ChatBox';
+import TripItemModal from './TripItemModal';
 
 type Props = {
     activity: Activity
 }
 
 function PlaceCardItem({ activity }: Props) {
-    const [photoUrl, setPhotoUrl] = useState<string>();
-
-    useEffect(() => {
-        activity && GetGooglePlaceDetail();
-    }, [activity])
-
-    const GetGooglePlaceDetail = async () => {
-        const result = await axios.post('/api/arcjet/google-place-detail', {
-            placeName: activity?.place_name
-        });
-
-        if (result?.data?.error) {
-            return;
-        }
-
-        setPhotoUrl(result?.data);
-    }
+    const photoUrl = usePlacePhoto(activity.place_name);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <>
             <div
-                className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-cyan-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block'
+                className='group relative rounded-3xl overflow-hidden bg-card border border-white/10 hover:border-cyan-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block'
                 onClick={() => setIsModalOpen(true)}
             >
                 {/* Image Section */}
@@ -45,11 +29,12 @@ function PlaceCardItem({ activity }: Props) {
                         alt={activity.place_name}
                         fill
                         className='object-cover transition-transform duration-700 group-hover:scale-110'
-                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     />
+                    <PhotoCredit placeName={activity.place_name} />
                     <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent print:hidden' />
 
-                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full print:bg-white print:border-gray-200'>
+                    <div className='absolute top-4 right-4 bg-black/50 border border-white/10 px-3 py-1 rounded-full print:bg-white print:border-gray-200'>
                         <span className='text-xs font-semibold text-cyan-300 print:text-cyan-700'>{activity.time_to_travel}</span>
                     </div>
                 </div>
@@ -63,7 +48,7 @@ function PlaceCardItem({ activity }: Props) {
 
                     <div className='mt-auto space-y-4'>
                         <div className='flex items-center gap-2 text-xs text-white/50 border-t border-white/10 pt-4 print:text-gray-500 print:border-gray-200'>
-                            <Ticket className='w-3.5 h-3.5 text-fuchsia-400' />
+                            <Ticket className='w-3.5 h-3.5 text-violet-400' />
                             <span>{activity.ticket_pricing}</span>
                         </div>
 
@@ -82,7 +67,7 @@ function PlaceCardItem({ activity }: Props) {
                 </div>
             </div>
 
-            <TripItemModal
+            {isModalOpen && <TripItemModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 item={{
@@ -98,7 +83,7 @@ function PlaceCardItem({ activity }: Props) {
                     // bestTime: activity.best_time_to_visit, // Removed as it doesn't exist on Activity type
                     geo_coordinates: (typeof activity.geo_coordinates === 'object' && activity.geo_coordinates) ? activity.geo_coordinates : undefined
                 }}
-            />
+            />}
         </>
     )
 }

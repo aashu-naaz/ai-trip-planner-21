@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { PhotoCredit } from "@/components/ui/photo-credit";
 import { GlassModal } from "@/components/ui/GlassModal";
 import { Button } from "@/components/ui/button";
+import { UserDetailContext } from '@/context/UserDetailContext';
+import { api } from '@/convex/_generated/api';
+import { useMutation,useQuery } from 'convex/react';
+import { ChevronLeft,ChevronRight,Heart,MapPin,Share2,X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Star, Heart, Share2, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { UserDetailContext } from '@/context/UserDetailContext';
+import React,{ useContext,useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 export type ModalItem = {
@@ -41,101 +42,74 @@ function TripItemModal({ isOpen, onClose, item }: Props) {
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
     // Notes & Favorites State
-    const [note, setNote] = useState("");
+    const [draftNote, setNote] = useState<string>();
 
     // Convex Hooks
-    const savePlace = useMutation((api as any).savedPlaces.SavePlace);
-    const removePlace = useMutation((api as any).savedPlaces.RemovePlace);
-    const updateNote = useMutation((api as any).savedPlaces.UpdateNote);
+    const savePlace = useMutation(api.savedPlaces.SavePlace);
+    const removePlace = useMutation(api.savedPlaces.RemovePlace);
+    const updateNote = useMutation(api.savedPlaces.UpdateNote);
 
     // Check if saved
-    const savedPlace = useQuery((api as any).savedPlaces.GetSavedPlace,
-        (userDetail && item && item.title) ? { userId: userDetail?.email || userDetail?._id, placeName: item.title } : "skip"
+    const savedPlace = useQuery(api.savedPlaces.GetSavedPlace,
+        (isOpen && userDetail && item && item.title) ? { userId: userDetail?.email || userDetail?._id, placeName: item.title } : "skip"
     );
 
-    // Sync note state when savedPlace loads
-    useEffect(() => {
-        if (savedPlace) {
-            setNote(savedPlace.notes || "");
-        } else if (!savedPlace) {
-            setNote(""); // Reset if not saved
-        }
-    }, [savedPlace]);
+    const note = draftNote ?? savedPlace?.notes ?? "";
 
-    // Auto-save Note Logic (Debounced)
     useEffect(() => {
+        if (draftNote === undefined || !userDetail || !item || savedPlace === undefined || note === (savedPlace?.notes ?? "")) return;
         const timer = setTimeout(() => {
-            // Only save if logged in, item exists, and note is different from DB
-            if (userDetail && item && note.trim() !== (savedPlace?.notes || "")) {
-
-                // If note empty and not saved, do nothing. 
-                // If note has text:
-                if (note.trim()) {
-                    // Start saving
-                    const userId = userDetail?.email || userDetail?._id;
-                    if (!savedPlace) {
-                        // First save the place, then the note
-                        savePlace({
-                            userId: userId,
-                            placeName: item.title,
-                            placeType: item.type,
-                            metadata: item
-                        }).then(() => {
-                            updateNote({ userId: userId, placeName: item.title, note: note });
-                        });
-                    } else {
-                        // Update existing note
-                        updateNote({ userId: userId, placeName: item.title, note: note });
-                    }
+            const persist = async () => {
+                const userId = userDetail.email || userDetail._id;
+                if (!savedPlace) {
+                    if (!note.trim()) return;
+                    await savePlace({ userId, placeName: item.title, placeType: item.type, metadata: item });
                 }
-            }
-        }, 1000);
+                await updateNote({ userId, placeName: item.title, note });
+            };
+            void persist().catch(() => toast.error("Your note couldn’t be saved. Please try again."));
+        }, 750);
         return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [note]);
+    }, [draftNote, userDetail, item, savedPlace, note, savePlace, updateNote]);
 
     const handleToggleSave = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!userDetail) {
+        if (!userDetail || !item) {
             toast.error("Please login to save places.");
             return;
         }
 
         const userId = userDetail?.email || userDetail?._id;
 
+        try {
         if (savedPlace) {
-            await removePlace({ userId: userId, placeName: item!.title });
+            await removePlace({ userId: userId, placeName: item.title });
             setNote("");
             toast.success("Removed from saved places");
         } else {
             await savePlace({
                 userId: userId,
-                placeName: item!.title,
-                placeType: item!.type,
+                placeName: item.title,
+                placeType: item.type,
                 metadata: item
             });
             toast.success("Saved to your places");
         }
+        } catch {
+            toast.error("Your saved places couldn’t be updated. Please try again.");
+        }
     };
 
-    // Reset index when item opens/changes
     useEffect(() => {
-        setActiveIndex(0);
-        if (!savedPlace) setNote(""); // Ensure note cleared on new item
-    }, [item]);
-
-    // Keyboard Navigation
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (!isOpen) return;
-            if (e.key === 'ArrowRight') handleNext();
-            if (e.key === 'ArrowLeft') handlePrev();
-            if (e.key === 'Escape') onClose();
+        if (!isOpen) return;
+        const count = item?.images?.length ?? 0;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'ArrowRight' && count) setActiveIndex((index) => (index + 1) % count);
+            if (event.key === 'ArrowLeft' && count) setActiveIndex((index) => (index - 1 + count) % count);
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, activeIndex]);
+    }, [isOpen, item?.images?.length]);
 
     if (!item) return null;
 
@@ -169,9 +143,9 @@ function TripItemModal({ isOpen, onClose, item }: Props) {
         <GlassModal
             isOpen={isOpen}
             onClose={onClose}
-            className="sm:max-w-2xl bg-white/95 dark:bg-zinc-950/95"
+            className="sm:max-w-2xl bg-popover"
         >
-            <div className="flex flex-col max-h-[85vh] h-full bg-white dark:bg-zinc-950">
+            <div className="flex flex-col max-h-[85vh] h-full bg-popover">
 
                 {/* 1. Header / Image Carousel (Fixed Height) */}
                 <div
@@ -190,6 +164,7 @@ function TripItemModal({ isOpen, onClose, item }: Props) {
                                 className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
                                 priority
                             />
+                            <PhotoCredit placeName={item.title} />
                         </div>
                     </div>
 
@@ -335,7 +310,7 @@ function TripItemModal({ isOpen, onClose, item }: Props) {
                             target="_blank"
                             className="flex-[2]"
                         >
-                            <Button className="w-full h-12 text-base rounded-xl font-semibold shadow-lg shadow-blue-500/20 bg-linear-to-r from-purple-500 to-fuchsia-600 hover:to-purple-500 transition-all duration-300 bg-size-[200%_auto] hover:bg-right">
+                            <Button className="w-full h-12 text-base rounded-xl font-semibold shadow-lg shadow-blue-500/20 bg-linear-to-r from-purple-500 to-violet-600 hover:to-purple-500 transition-all duration-300 bg-size-[200%_auto] hover:bg-right">
                                 <MapPin className="h-4 w-4 mr-2" /> View on Map
                             </Button>
                         </Link>

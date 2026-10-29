@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireOwner } from "./auth";
 
 export const SavePlace = mutation({
     args: {
@@ -9,6 +10,7 @@ export const SavePlace = mutation({
         metadata: v.any()
     },
     handler: async (ctx, args) => {
+        await requireOwner(ctx, args.userId);
         // Check if already saved
         const existing = await ctx.db.query("SavedPlacesTable")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -34,6 +36,7 @@ export const RemovePlace = mutation({
         placeName: v.string()
     },
     handler: async (ctx, args) => {
+        await requireOwner(ctx, args.userId);
         const existing = await ctx.db.query("SavedPlacesTable")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .filter((q) => q.eq(q.field("placeName"), args.placeName))
@@ -52,6 +55,7 @@ export const UpdateNote = mutation({
         note: v.string()
     },
     handler: async (ctx, args) => {
+        await requireOwner(ctx, args.userId);
         const existing = await ctx.db.query("SavedPlacesTable")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .filter((q) => q.eq(q.field("placeName"), args.placeName))
@@ -74,6 +78,7 @@ export const GetSavedPlace = query({
         placeName: v.string()
     },
     handler: async (ctx, args) => {
+        await requireOwner(ctx, args.userId);
         const existing = await ctx.db.query("SavedPlacesTable")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .filter((q) => q.eq(q.field("placeName"), args.placeName))
@@ -87,6 +92,7 @@ export const GetSavedPlaces = query({
         userId: v.string()
     },
     handler: async (ctx, args) => {
+        await requireOwner(ctx, args.userId);
         const savedPlaces = await ctx.db.query("SavedPlacesTable")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .order("desc")

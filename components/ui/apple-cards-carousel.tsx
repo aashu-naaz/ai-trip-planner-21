@@ -1,20 +1,22 @@
 "use client";
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  createContext,
-  useContext,
-} from "react";
-import {
-  IconArrowNarrowLeft,
-  IconArrowNarrowRight,
-  IconX,
-} from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
-import Image, { ImageProps } from "next/image";
 import { useOutsideClick } from "@/hooks/use-outside-click";
+import { cn } from "@/lib/utils";
+import {
+IconArrowNarrowLeft,
+IconArrowNarrowRight,
+IconX,
+} from "@tabler/icons-react";
+import { AnimatePresence,m } from "motion/react";
+import { ImageProps } from "next/image";
+import { useCallback } from "react";
+import Image from "next/image";
+import React,{
+createContext,
+useContext,
+useEffect,
+useRef,
+useState,
+} from "react";
 
 interface CarouselProps {
   items: React.ReactNode[];
@@ -42,20 +44,22 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
   const [canScrollRight, setCanScrollRight] = React.useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollLeft = initialScroll;
-      checkScrollability();
-    }
-  }, [initialScroll]);
-
-  const checkScrollability = () => {
+  const checkScrollability = useCallback(() => {
     if (carouselRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const element = carouselRef.current;
+    if (!element) return;
+    element.scrollLeft = initialScroll;
+    const observer = new ResizeObserver(checkScrollability);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [initialScroll, checkScrollability]);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -109,7 +113,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
             )}
           >
             {items.map((item, index) => (
-              <motion.div
+              <m.div
                 initial={{
                   opacity: 0,
                   y: 20,
@@ -127,7 +131,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
                 className="rounded-3xl last:pr-[5%] md:last:pr-[33%]"
               >
                 {item}
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -163,48 +167,39 @@ export const Card = ({
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { onCardClose, currentIndex } = useContext(CarouselContext);
+  const { onCardClose } = useContext(CarouselContext);
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        handleClose();
-      }
-    }
-
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
-
-  useOutsideClick(containerRef as React.RefObject<HTMLDivElement>, () => handleClose());
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
     onCardClose(index);
-  };
+  }, [onCardClose, index]);
+  const handleOpen = () => setOpen(true);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") handleClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, handleClose]);
+  useOutsideClick(containerRef, () => { if (open) handleClose(); });
 
   return (
     <>
       <AnimatePresence>
         {open && (
           <div className="fixed inset-0 z-50 h-screen overflow-auto">
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 h-full w-full bg-black/80 backdrop-blur-lg"
             />
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -218,42 +213,42 @@ export const Card = ({
               >
                 <IconX className="h-6 w-6 text-neutral-100 dark:text-neutral-900" />
               </button>
-              <motion.p
+              <m.p
                 layoutId={layout ? `category-${card.title}` : undefined}
                 className="text-base font-medium text-black dark:text-white"
               >
                 {card.category}
-              </motion.p>
-              <motion.p
+              </m.p>
+              <m.p
                 layoutId={layout ? `title-${card.title}` : undefined}
                 className="mt-4 text-2xl font-semibold text-neutral-700 md:text-5xl dark:text-white"
               >
                 {card.title}
-              </motion.p>
+              </m.p>
               <div className="py-10">{card.content}</div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>
-      <motion.button
+      <m.button
         layoutId={layout ? `card-${card.title}` : undefined}
         onClick={handleOpen}
         className="relative z-10 flex h-80 w-56 flex-col items-start justify-start overflow-hidden rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 md:h-[40rem] md:w-96 group hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 z-30 h-full bg-gradient-to-b from-black/50 via-transparent to-transparent" />
         <div className="relative z-40 p-8">
-          <motion.p
+          <m.p
             layoutId={layout ? `category-${card.category}` : undefined}
             className="text-left font-sans text-sm font-medium text-white md:text-base"
           >
             {card.category}
-          </motion.p>
-          <motion.p
+          </m.p>
+          <m.p
             layoutId={layout ? `title-${card.title}` : undefined}
             className="mt-2 max-w-xs text-left font-sans text-xl font-semibold [text-wrap:balance] text-white md:text-3xl"
           >
             {card.title}
-          </motion.p>
+          </m.p>
         </div>
         <BlurImage
           src={card.src}
@@ -261,7 +256,7 @@ export const Card = ({
           fill
           className="absolute inset-0 z-10 object-cover"
         />
-      </motion.button>
+      </m.button>
     </>
   );
 };
@@ -277,14 +272,17 @@ export const BlurImage = ({
   ...rest
 }: ImageProps) => {
   return (
-    <img
+    <Image
       className={cn(
         "h-full w-full transition duration-300",
         className,
       )}
-      src={src as string}
-      width={width}
-      height={height}
+      src={src}
+      fill={fill}
+      blurDataURL={blurDataURL}
+      width={fill ? undefined : (width ?? 1280)}
+      height={fill ? undefined : (height ?? 720)}
+      sizes="(max-width: 768px) 100vw, 50vw"
       loading="lazy"
       decoding="async"
       alt={alt ? alt : "Background of a beautiful view"}

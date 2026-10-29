@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { cn } from "@/lib/utils";
 
 type TripStyleUiProps = {
@@ -55,7 +54,7 @@ export default function TripStyleUi({ value, onSelect }: TripStyleUiProps) {
                     Travel vibe
                 </h3>
                 <p className="text-sm text-white/60 mt-1">
-                    What's your travel mood?
+                    What’s your travel mood?
                 </p>
             </div>
 

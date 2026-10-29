@@ -1,31 +1,22 @@
 "use client"
-import React, { useEffect, useState, useRef } from 'react'
+import { useRef } from 'react';
 
+import { useTripDetail } from '@/app/provider';
 import { Timeline } from '@/components/ui/timeline';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import HotelCardItem from './HotelCardItem';
 import PlaceCardItem from './PlaceCardItem';
-import { useTripDetail } from '@/app/provider';
-import { TripInfo } from './ChatBox';
-import { ArrowLeft } from 'lucide-react';
 
 function Itinerary() {
 
-    const { tripDetailInfo, setTripDetailInfo } = useTripDetail();
-    const [tripData, setTripData] = useState<TripInfo | null>(null);
+    const { tripDetailInfo: tripData } = useTripDetail();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        tripDetailInfo && setTripData(tripDetailInfo)
-    }, [tripDetailInfo])
-
+    if (!tripData) return <div className="flex h-full items-center justify-center p-8 text-center text-muted-foreground">Your hotels and daily itinerary will appear here when your trip is ready.</div>;
     const data = tripData ? [
         {
             title: "Hotels",
             content: (
-                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:block'>
+                <div className='grid grid-cols-1 @2xl:grid-cols-2 @4xl:grid-cols-3 gap-5 print:block'>
                     {tripData?.hotels?.map((hotel, index) => (
                         <div key={index} className='print:break-inside-avoid print:mb-4'>
                             <HotelCardItem hotel={hotel} />
@@ -34,21 +25,15 @@ function Itinerary() {
                 </div>
             )
         },
-        ...(tripData?.itinerary?.map((dayData, index) => {
-            let activities: any[] = [];
-            if (dayData.activities) activities = dayData.activities;
-            // @ts-ignore
-            else if (dayData.places) activities = dayData.places;
-            else if (typeof dayData.plan === 'object') {
-                activities = Array.isArray(dayData.plan) ? dayData.plan : [dayData.plan];
-            }
+        ...(tripData?.itinerary?.map((dayData) => {
+            const activities = dayData.activities ?? dayData.places ?? (Array.isArray(dayData.plan) ? dayData.plan : []);
 
             return {
                 title: dayData.day?.toString().startsWith('Day') ? dayData.day.toString() : `Day ${dayData.day}`,
                 content: (
                     <div>
                         {typeof dayData.plan === 'string' && <h2 className='font-medium text-lg text-white mb-4 print:text-black'>{dayData.plan}</h2>}
-                        <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:block'>
+                        <div className='grid grid-cols-1 @2xl:grid-cols-2 @4xl:grid-cols-3 gap-5 print:block'>
                             {activities?.map((activity, index) => (
                                 <div key={index} className='print:break-inside-avoid print:mb-4'>
                                     <PlaceCardItem activity={activity} />

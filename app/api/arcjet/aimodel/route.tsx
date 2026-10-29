@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { parseTripReply } from "@/lib/trip-response";
 import aj from "@/lib/arcjet";
+import { auth,currentUser } from "@clerk/nextjs/server";
+import { GoogleGenerativeAI,HarmBlockThreshold,HarmCategory } from "@google/generative-ai";
+import { NextRequest,NextResponse } from "next/server";
 
 // Define the prompt constant
 const PROMPT = `
@@ -287,7 +288,7 @@ export async function POST(request: NextRequest) {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
     // Set system prompt here
     systemInstruction: PROMPT,
     generationConfig: {
@@ -323,7 +324,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { messages } = body;
+    const { messages, isFinal } = body || {};
     const user = await currentUser();
     const { has } = await auth();
     const hasPremiumAccess = has({ plan: 'monthly' });
@@ -347,9 +348,11 @@ export async function POST(request: NextRequest) {
     // Gemini: history: [{role: 'user'|'model', parts: [{text: string}]}]
 
     // Sanitize history: Merge consecutive messages from same role
-    const sanitizedMessages = messages.reduce((acc: any[], msg: any) => {
+    const sanitizedMessages = messages.reduce<{ role: string; parts: { text: string }[] }[]>((acc, msg: unknown) => {
+      if (!msg || typeof msg !== "object" || !("role" in msg) || !("content" in msg) || typeof msg.content !== "string") return acc;
       const role = msg.role === 'user' ? 'user' : 'model';
-      const content = msg.content;
+      const content = (msg.content || '').trim();
+      if (!content) return acc;
 
       if (acc.length > 0 && acc[acc.length - 1].role === role) {
         // Append content to the last message if role is the same
@@ -364,15 +367,31 @@ export async function POST(request: NextRequest) {
       return acc;
     }, []);
 
+    // Ensure we have at least one message
+    if (sanitizedMessages.length === 0) {
+      return NextResponse.json({ error: "No valid messages provided" }, { status: 400 });
+    }
+
     // Extract the last message (which is always the user's latest input, possibly merged)
     const lastMessageItem = sanitizedMessages.pop();
-    const lastMessage = lastMessageItem ? lastMessageItem.parts[0].text : "";
+    let lastMessage = lastMessageItem ? lastMessageItem.parts[0].text : "Please continue.";
+
+    // If final trip generation was requested, guide Gemini to return the full itinerary schema
+    if (isFinal) {
+      lastMessage += "\n\n[Instruction: All required details have been gathered. Please generate the final complete trip plan now with ui: 'final' and the complete 'trip_plan' JSON structure.]";
+    }
+
+    // Ensure history starts with 'user' role (strict Gemini requirement)
+    while (sanitizedMessages.length > 0 && sanitizedMessages[0].role !== 'user') {
+      sanitizedMessages.shift();
+    }
     const history = sanitizedMessages;
 
     console.log("Starting Gemini completion request...", {
       originalMessageCount: messages.length,
       sanitizedHistoryCount: history.length,
-      lastMessageLength: lastMessage.length
+      lastMessageLength: lastMessage.length,
+      isFinal: !!isFinal
     });
 
     // 4. Start Chat and Send Message
@@ -384,10 +403,10 @@ export async function POST(request: NextRequest) {
     try {
       const result = await chatSession.sendMessage(lastMessage);
       responseText = result.response.text();
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
       console.error("Gemini API call failed:", apiError);
       return NextResponse.json({
-        error: `AI Service Error: ${apiError.message || apiError.code || "Unknown error"}`
+        error: `AI Service Error: ${apiError instanceof Error ? apiError.message : "Unknown error"}`
       }, { status: 502 });
     }
 
@@ -395,29 +414,13 @@ export async function POST(request: NextRequest) {
       throw new Error("Empty response received from AI provider");
     }
 
-    // 4. Parse AI Response (JSON)
-    // Find the first '{' and the last '}' to extract the JSON object
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    const cleanContent = jsonMatch ? jsonMatch[0] : responseText;
+    return NextResponse.json(parseTripReply(responseText));
 
-    try {
-      const parsedResponse = JSON.parse(cleanContent);
-      return NextResponse.json(parsedResponse);
-    } catch (parseError) {
-      console.error("JSON Parsing Error:", parseError);
-      console.error("Failed Content:", responseText);
-
-      return NextResponse.json({
-        resp: cleanContent || "I'm sorry, I couldn't generate a plan. Please try again.",
-        ui: ""
-      });
-    }
-
-  } catch (e: any) {
+  } catch (e: unknown) {
     // Global catch for any other unexpected errors
     console.error("Unexpected Route Error:", e);
     return NextResponse.json({
-      error: `Internal Server Error: ${e.message}`,
+      error: `Internal Server Error: ${e instanceof Error ? e.message : "Unexpected error"}`,
       resp: "I encountered an internal error. Please try again." // Friendly fallback
     }, { status: 500 });
   }

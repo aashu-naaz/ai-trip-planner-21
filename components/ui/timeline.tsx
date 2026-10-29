@@ -1,39 +1,29 @@
 "use client";
+import type { TripInfo } from "@/app/create-new-trip/_components/ChatBox";
+import { Calendar,Users,Wallet } from "lucide-react";
 import {
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-  motion,
+m,
+useScroll,
+useTransform
 } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
-import { Calendar, Users, Wallet } from "lucide-react";
+import React,{ useEffect,useRef,useState } from "react";
 
 interface TimelineEntry {
   title: string;
   content: React.ReactNode;
 }
 
-interface TripInfo {
-  budget: string,
-  destination: string,
-  duration: string,
-  group_size: string,
-  origin: string,
-  hotels: any,
-  itinerary: any
-}
-
-export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEntry[], tripData?: TripInfo, scrollContainer?: React.RefObject<HTMLDivElement | null> }) => {
+export const Timeline = ({ data, tripData, scrollContainer, showSummary = true }: { data: TimelineEntry[], tripData?: TripInfo, scrollContainer?: React.RefObject<HTMLDivElement | null>, showSummary?: boolean }) => {
   const ref = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setHeight(rect.height);
-    }
-  }, [ref]);
+    if (!ref.current) return;
+    const observer = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -49,7 +39,7 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
       className="w-full bg-transparent dark:bg-neutral-950 font-sans md:px-10 print:bg-transparent print:px-0"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10 print:py-0 print:px-0">
+      {showSummary && <div className="max-w-7xl mx-auto py-12 px-4 md:px-8 lg:px-10 print:py-0 print:px-0">
         <h2 className="text-lg md:text-4xl mb-4 text-white print:text-black max-w-4xl font-bold">
           Your Trip Itinerary from <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent print:text-black print:bg-none'>{tripData?.origin}</span> to <span className='bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent print:text-black print:bg-none'>{tripData?.destination}</span> is Ready
         </h2>
@@ -65,7 +55,7 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
             <Users className='h-5 w-5 text-violet-400 print:text-violet-600' /> {tripData?.group_size} Travelers
           </div>
         </div>
-      </div>
+      </div>}
 
       <div ref={ref} className="relative max-w-7xl mx-auto pb-5 print:pb-0">
         {data.map((item, index) => (
@@ -83,7 +73,7 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
               </h3>
             </div>
 
-            <div className="relative pl-20 pr-4 md:pl-4 w-full print:pl-20">
+            <div className="@container relative min-w-0 pl-14 pr-0 md:pl-4 md:pr-4 w-full print:pl-20">
               <h3 className="md:hidden block text-2xl mb-4 text-left font-bold text-neutral-300 whitespace-nowrap print:text-black print:mb-2">
                 {item.title}
               </h3>
@@ -99,7 +89,7 @@ export const Timeline = ({ data, tripData, scrollContainer }: { data: TimelineEn
           }}
           className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 dark:via-neutral-700 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] print:hidden"
         >
-          <motion.div
+          <m.div
             style={{
               height: heightTransform,
               opacity: opacityTransform,

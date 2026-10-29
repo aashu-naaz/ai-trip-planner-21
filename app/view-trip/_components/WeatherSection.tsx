@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Cloud, CloudRain, Sun, Snowflake, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Cloud,CloudRain,Loader2,Snowflake,Sun } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 interface WeatherData {
     temp: number;
@@ -10,52 +8,32 @@ interface WeatherData {
     icon: string;
 }
 
-function WeatherSection({ coordinates }: { coordinates: { lat: number, lng: number } }) {
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+function WeatherSection({ coordinates }: { coordinates?: { lat: number, lng: number } }) {
+    const lat = coordinates?.lat;
+    const lng = coordinates?.lng;
+    const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+    const key = `${lat},${lng}`;
+    const [result, setResult] = useState<{ key: string; data?: WeatherData; error?: string }>();
+    const weatherData = result?.key === key ? result.data : undefined;
+    const error = result?.key === key ? result.error : undefined;
+    const loading = !!apiKey && lat !== undefined && lng !== undefined && result?.key !== key;
 
     useEffect(() => {
-        if (coordinates) {
-            GetWeather();
-        }
-    }, [coordinates?.lat, coordinates?.lng]); // Use primitive values to avoid re-renders on object reference change
-
-    const GetWeather = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-            if (!apiKey) {
-                console.error("OpenWeather API key not found");
-                setError("API Key Missing");
-                setLoading(false);
-                return;
+        if (!apiKey || lat === undefined || lng === undefined) return;
+        const controller = new AbortController();
+        const load = async () => {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`, { signal: controller.signal });
+                if (!response.ok) throw new Error("Weather is temporarily unavailable");
+                const data = await response.json();
+                setResult({ key, data: { temp: Math.round(data.main.temp), main: data.weather[0].main, description: data.weather[0].description, icon: data.weather[0].icon } });
+            } catch {
+                if (!controller.signal.aborted) setResult({ key, error: "Weather is temporarily unavailable" });
             }
-
-            const resp = await axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lng}&appid=${apiKey}&units=metric`);
-
-            setWeatherData({
-                temp: Math.round(resp.data.main.temp),
-                main: resp.data.weather[0].main,
-                description: resp.data.weather[0].description,
-                icon: resp.data.weather[0].icon
-            });
-        } catch (e: any) {
-            console.error("Weather Fetch Error:", e);
-            if (e.response && e.response.status === 429) {
-                setError("API Limit Reached");
-                toast.error("Weather API Usage Limit Reached (429). Key might be new or quota exceeded.");
-            } else if (e.response && e.response.status === 401) {
-                setError("API Key Invalid/Activating");
-                toast.error("Weather API Key Invalid (401). New keys take 10-15 mins to activate.");
-            } else {
-                setError("Failed to load weather");
-            }
-        } finally {
-            setLoading(false);
-        }
-    }
+        };
+        void load();
+        return () => controller.abort();
+    }, [lat, lng, apiKey, key]);
 
     const getWeatherIcon = (main: string) => {
         switch (main?.toLowerCase()) {

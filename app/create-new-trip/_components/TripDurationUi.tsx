@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import React, { useState } from 'react'
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 type Props = {
     onOptionSelect: (option: string) => void
@@ -25,7 +25,7 @@ function TripDurationUi({ onOptionSelect }: Props) {
             </div>
 
             <div className='flex justify-center'>
-                <Button className='bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white w-32 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full font-semibold text-[15px] tracking-[-0.01em]'
+                <Button className='bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white w-32 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(217,70,239,0.9)] hover:scale-105 transition-all duration-300 rounded-full font-semibold text-[15px] tracking-[-0.01em]'
                     onClick={() => onOptionSelect(days + ' Days')}
                 >Confirm</Button>
             </div>

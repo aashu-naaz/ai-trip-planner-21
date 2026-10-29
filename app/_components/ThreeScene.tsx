@@ -1,7 +1,7 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { Canvas,useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import * as THREE from "three";
 
 function Globe() {
@@ -15,7 +15,7 @@ function Globe() {
 
   return (
     <mesh ref={mesh} position={[0, 0, -1]}>
-      <sphereGeometry args={[1.8, 96, 96]} />
+      <sphereGeometry args={[1.8, 48, 32]} />
       <meshStandardMaterial
         color="#6d28d9"
         roughness={0.25}
@@ -28,16 +28,10 @@ function Globe() {
 }
 
 export default function ThreeScene() {
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
 
   return (
-    <Canvas
+    <Canvas dpr={[1, 1.5]}
       camera={{ position: [0, 0, 5], fov: 45 }}
       style={{
         position: "absolute",

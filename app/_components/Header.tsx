@@ -1,127 +1,51 @@
 "use client";
 
+import { UserButton,useUser } from "@clerk/nextjs";
+import { Menu,Sparkles,X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { AnimatePresence, m } from "motion/react";
+import { useState } from "react";
+
+const navigation = [
+  { name: "Home", path: "/" },
+  { name: "Pricing", path: "/pricing" },
+  { name: "Contact us", path: "/contact-us" },
+];
 
 export default function Header() {
   const pathname = usePathname();
   const { isSignedIn, isLoaded } = useUser();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const planning = pathname === "/create-new-trip" || pathname.startsWith("/view-trip");
 
   return (
-    <>
-      {/* Refined Cosmic Glow Animation */}
-      <style jsx>{`
-        @keyframes cosmicGlow {
-          0%, 100% {
-            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
-          }
-          50% {
-            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.7));
-          }
-        }
-      `}</style>
-
-      <header
-        className="fixed top-0 left-0 w-full z-50 flex items-center px-4 md:px-10 py-4 transition-all duration-300 backdrop-blur-md bg-black/20 border-b border-white/10"
-      >
-        <div className="mx-auto flex max-w-7xl w-full items-center justify-between">
-
-          {/* --- IMPROVED LOGO + BRAND SECTION --- */}
-          <Link href="/" className="group flex items-center gap-3 transition-transform hover:scale-[1.02]">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
-              <Image
-                src="/logo.svg"
-                alt="SmartJourney"
-                width={38}
-                height={38}
-                className="relative rounded-full border border-white/20 shadow-xl transition-all duration-300 group-hover:border-white/40"
-                priority
-              />
-            </div>
-
-            <span
-              className="font-bold tracking-tight bg-gradient-to-r from-indigo-200 via-purple-300 to-cyan-300 bg-clip-text text-transparent text-[24px] animate-[cosmicGlow_4s_ease-in-out_infinite]"
-              style={{ fontFamily: 'var(--font-playfair), serif' }}
-            >
-              Smart<span className="font-extrabold text-white">Journey</span>
-            </span>
-          </Link>
-
-          {/* NAV */}
-          <nav className="hidden md:flex items-center gap-10">
-            {[
-              { name: "Home", path: "/" },
-              { name: "Pricing", path: "/pricing" },
-              { name: "Contact us", path: "/contact-us" },
-            ].map((item) => {
-              const isActive = pathname === item.path;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.path}
-                  className={`relative font-medium tracking-wide text-base transition-colors duration-300 ${isActive ? "text-white" : "text-white/60 hover:text-white"
-                    }`}
-                >
-                  {item.name}
-                  {isActive && (
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* ACTIONS */}
-          <div className="flex items-center gap-4">
-            {!isLoaded ? (
-              // Loading state - show placeholder
-              <div className="h-9 w-32 bg-white/10 rounded-full animate-pulse" />
-            ) : isSignedIn ? (
-              // Authenticated user - show trip buttons and user menu
-              <>
-                {pathname === '/create-new-trip' || pathname.startsWith('/view-trip') ? (
-                  <Link
-                    href="/my-trips"
-                    className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 text-sm font-medium text-white shadow-lg hover:bg-white/20 hover:scale-105 transition"
-                  >
-                    My Trips
-                  </Link>
-                ) : (
-                  <Link
-                    href="/create-new-trip"
-                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
-                  >
-                    <Sparkles className="w-4 h-4 text-white fill-white/20" />
-                    Create New Trip
-                  </Link>
-                )}
-                <UserButton afterSignOutUrl="/" />
-              </>
-            ) : (
-              // Not authenticated - show Sign In and Sign Up buttons
-              <>
-                <Link
-                  href="/sign-in"
-                  className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 text-sm font-medium text-white shadow-lg hover:bg-white/20 hover:scale-105 transition"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
-                >
-                  <Sparkles className="w-4 h-4 text-white fill-white/20" />
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-10">
+        <Link href="/" onClick={() => setMenuOpen(false)} className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-3" aria-label="SmartJourney home">
+          <Image src="/logo.svg" alt="" width={36} height={36} className="rounded-full border border-border" priority />
+          <span className="text-base min-[375px]:text-lg font-semibold tracking-tight sm:text-2xl">Smart<span className="text-violet-300">Journey</span></span>
+        </Link>
+        <nav aria-label="Main navigation" className="hidden items-center gap-8 lg:flex">
+          {navigation.map(({ name, path }) => (
+            <Link key={path} href={path} aria-current={pathname === path ? "page" : undefined} className={`border-b-2 py-2 text-sm font-medium transition-colors ${pathname === path ? "border-violet-400 text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{name}</Link>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {!isLoaded ? <div role="status" aria-label="Loading account" className="h-10 w-20 animate-pulse rounded-full bg-muted" /> : isSignedIn ? <>
+            <Link href={planning ? "/my-trips" : "/create-new-trip"} className="brand-button hidden sm:inline-flex"><Sparkles size={16} />{planning ? "My trips" : "Create a trip"}</Link>
+            <UserButton afterSignOutUrl="/" />
+          </> : <>
+            <Link href="/sign-in" className="hidden px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:block">Sign in</Link>
+            <Link href="/sign-up" className="brand-button !px-3 sm:!px-4">Sign up</Link>
+          </>}
+          <button type="button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)} className="flex size-11 items-center justify-center rounded-xl border border-border text-foreground lg:hidden">{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
-      </header>
-    </>
+      </div>
+      <AnimatePresence>{menuOpen && <m.nav initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} id="mobile-navigation" aria-label="Mobile navigation" className="space-y-1 border-t border-border bg-background p-4 lg:hidden">
+        {[...navigation, ...(isSignedIn ? [{ name: "My trips", path: "/my-trips" }, { name: "Create a trip", path: "/create-new-trip" }] : [{ name: "Sign in", path: "/sign-in" }])].map(({ name, path }) => <Link key={path} href={path} onClick={() => setMenuOpen(false)} aria-current={pathname === path ? "page" : undefined} className={`block rounded-xl px-4 py-3 text-sm ${pathname === path ? "bg-primary/15 text-violet-300" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>{name}</Link>)}
+      </m.nav>}</AnimatePresence>
+    </header>
   );
 }

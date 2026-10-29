@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { authenticatedEmail } from "./auth";
 
 export const CreateNewUser = mutation({
     args: {
@@ -8,6 +9,8 @@ export const CreateNewUser = mutation({
         imageUrl: v.string(),
     },
     handler: async (ctx, args) => {
+        const email = await authenticatedEmail(ctx);
+        if (args.email.trim().toLowerCase() !== email) throw new Error('Cannot create another user’s account');
         // If User already exist?
         const user = await ctx.db.query("UserTable")
             .filter((q) => q.eq(q.field("email"), args.email))

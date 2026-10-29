@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import {
-    ArrowRight,
-    Send,
-    Clock,
-    Shield,
-    Sparkles,
-    Plane,
-    Bot,
+ArrowRight,
+Bot,
+Clock,
+Plane,
+Send,
+Shield,
+Sparkles,
 } from "lucide-react";
+import { Reveal } from "@/components/ui/motion";
+import Link from "next/link";
+import React,{ useState } from "react";
 
 export default function Contact() {
     const [formData, setFormData] = useState({
@@ -19,21 +20,28 @@ export default function Contact() {
         message: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<{ error?: string; success?: string }>({});
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulated submit
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        alert("Thanks! Our team will get back to you shortly ✈️");
-        setFormData({ name: "", email: "", message: "" });
-        setIsSubmitting(false);
+        setSubmitStatus({});
+        try {
+            const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData), signal: AbortSignal.timeout(15000) });
+            const result = await response.json();
+            if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Your message couldn’t be delivered. Please try again.');
+            setSubmitStatus({ success: 'Thanks! Your message has been sent.' });
+            setFormData({ name: '', email: '', message: '' });
+        } catch (error) {
+            setSubmitStatus({ error: error instanceof Error ? error.message : 'Your message couldn’t be sent. Please try again.' });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
-        <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black text-white relative overflow-hidden">
+        <main className="min-h-screen bg-background text-white relative overflow-hidden">
             {/* ================= HERO ================= */}
             <section className="relative overflow-hidden py-16 sm:py-24 pt-32">
                 {/* Background Gradients */}
@@ -42,15 +50,15 @@ export default function Contact() {
                     <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 rounded-full blur-[120px]" />
                 </div>
 
-                <div className="container mx-auto px-6 text-center max-w-4xl relative z-10">
-                    <h1 className="text-4xl sm:text-6xl font-[family-name:var(--font-playfair)] font-bold tracking-tight mb-6 bg-linear-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-sm">
+                <Reveal className="container mx-auto px-6 text-center max-w-4xl relative z-10">
+                    <h1 className="text-4xl sm:text-6xl font-[family-name:var(--font-playfair)] font-bold tracking-tight mb-6 bg-linear-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-sm">
                         We’re here to help you plan better trips
                     </h1>
                     <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
                         Questions, feedback, or ideas?
                         Our team — powered by AI 🤖 — would love to hear from you.
                     </p>
-                </div>
+                </Reveal>
             </section>
 
             {/* ================= CONTACT OPTIONS ================= */}
@@ -79,11 +87,11 @@ export default function Contact() {
                             border: "group-hover:border-violet-500/50",
                         },
                     ].map((item) => (
-                        <div
+                        <Reveal
                             key={item.title}
                             className="
                                 relative rounded-3xl p-px
-                                bg-linear-to-br from-purple-500/30 via-pink-500/30 to-cyan-400/30
+                                bg-linear-to-br from-purple-500/30 via-violet-500/30 to-cyan-400/30
                                 group hover:scale-[1.02] transition-transform duration-300
                             "
                         >
@@ -119,7 +127,7 @@ export default function Contact() {
                                     Get in touch <ArrowRight className="w-4 h-4" />
                                 </span>
                             </div>
-                        </div>
+                        </Reveal>
                     ))}
                 </div>
             </section>
@@ -128,7 +136,7 @@ export default function Contact() {
             <section className="py-20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05010d]/50 -z-10" />
 
-                <div className="container mx-auto px-6 max-w-2xl relative z-10">
+                <Reveal className="container mx-auto px-6 max-w-2xl relative z-10">
                     <div className="text-center mb-12">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 mb-4 backdrop-blur-sm">
                             <Sparkles className="w-4 h-4 text-blue-400" />
@@ -136,7 +144,7 @@ export default function Contact() {
                                 AI-Powered Support
                             </span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold bg-linear-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent mb-4 tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl font-extrabold bg-linear-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent mb-4 tracking-tight">
                             Send us a message
                         </h2>
                         <p className="text-gray-400">
@@ -144,13 +152,16 @@ export default function Contact() {
                         </p>
                     </div>
 
-                    <div className="relative rounded-3xl p-px bg-linear-to-br from-purple-500/30 via-pink-500/30 to-cyan-400/30">
+                    <div className="relative rounded-3xl p-px bg-linear-to-br from-purple-500/30 via-violet-500/30 to-cyan-400/30">
                         <form
                             onSubmit={handleSubmit}
                             className="bg-black/40 backdrop-blur-xl rounded-3xl p-8 sm:p-10 shadow-2xl border border-white/10 space-y-6"
                         >
                             <div className="space-y-2">
                                 <input
+                                    maxLength={120}
+                                    autoComplete="name"
+                                    aria-label="Your name"
                                     placeholder="Your name"
                                     value={formData.name}
                                     onChange={(e) =>
@@ -163,6 +174,9 @@ export default function Contact() {
                             <div className="space-y-2">
                                 <input
                                     type="email"
+                                    maxLength={254}
+                                    autoComplete="email"
+                                    aria-label="Email address"
                                     placeholder="you@example.com"
                                     value={formData.email}
                                     onChange={(e) =>
@@ -174,6 +188,8 @@ export default function Contact() {
                             </div>
                             <div className="space-y-2">
                                 <textarea
+                                    maxLength={5000}
+                                    aria-label="Your message"
                                     placeholder="Tell us how we can help…"
                                     rows={5}
                                     value={formData.message}
@@ -188,7 +204,7 @@ export default function Contact() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-linear-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white rounded-xl py-4 font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-500/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white rounded-xl py-4 font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-500/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <>Sending...</>
@@ -196,15 +212,17 @@ export default function Contact() {
                                     <>Send Message <Send size={18} /></>
                                 )}
                             </button>
+                            {submitStatus.error && <p role="alert" className="text-sm leading-relaxed text-red-300">{submitStatus.error}</p>}
+                            {submitStatus.success && <p role="status" className="text-sm leading-relaxed text-violet-200">{submitStatus.success}</p>}
                         </form>
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ================= AI HELPER ================= */}
             <section className="py-12 relative z-10">
                 <div className="container mx-auto px-6 max-w-3xl">
-                    <div className="relative rounded-3xl p-px bg-linear-to-br from-purple-500/30 via-pink-500/30 to-cyan-400/30">
+                    <div className="relative rounded-3xl p-px bg-linear-to-br from-purple-500/30 via-violet-500/30 to-cyan-400/30">
                         <div className="flex flex-col sm:flex-row items-center gap-6 bg-black/40 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-lg">
                             <div className="h-16 w-16 rounded-full bg-white/5 border border-white/10 text-cyan-400 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
                                 <Bot className="w-8 h-8" />
@@ -248,7 +266,7 @@ export default function Contact() {
                     <div className="inline-block p-4 rounded-full bg-white/5 mb-6 animate-float">
                         <Plane className="mx-auto text-purple-400 w-8 h-8" />
                     </div>
-                    <h2 className="text-3xl sm:text-5xl font-extrabold mb-6 bg-linear-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
+                    <h2 className="text-3xl sm:text-5xl font-extrabold mb-6 bg-linear-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
                         Ready to plan your next trip?
                     </h2>
                     <p className="text-gray-400 mb-10 text-lg">

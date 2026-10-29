@@ -1,9 +1,8 @@
-import React from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { useUserDetail } from '@/app/provider'
-import PlaceCardItem from '@/app/create-new-trip/_components/PlaceCardItem'
 import HotelCardItem from '@/app/create-new-trip/_components/HotelCardItem'
+import PlaceCardItem from '@/app/create-new-trip/_components/PlaceCardItem'
+import { useUserDetail } from '@/app/provider'
+import { api } from '@/convex/_generated/api'
+import { useQuery } from 'convex/react'
 
 function SavedPlacesSection() {
     const { userDetail } = useUserDetail();

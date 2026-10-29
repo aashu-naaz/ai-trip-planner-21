@@ -1,4 +1,3 @@
-import React from 'react'
 import { SelectTravelesList } from './options'
 
 type Props = {
@@ -9,8 +8,8 @@ function GroupSizeUi({ onOptionSelect }: Props) {
     return (
         <div className='grid grid-cols-3 gap-3 mt-4'>
             {SelectTravelesList.map((item, index) => (
-                <div key={index} className={`p-4 backdrop-blur-md bg-white/5 border border-white/10 rounded-[24px] 
-                hover:bg-purple-500/20 hover:border-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.4)] 
+                <div key={index} className={`p-4 backdrop-blur-md bg-white/5 border border-white/10 rounded-[24px]
+                hover:bg-purple-500/20 hover:border-violet-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.4)]
                 cursor-pointer flex flex-col items-center justify-center text-center transition-all duration-300 group`}
                     onClick={() => onOptionSelect(item.title)}
                 >

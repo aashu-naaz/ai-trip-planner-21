@@ -1,112 +1,38 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useQuery } from 'convex/react';
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import type { TripInfo } from "@/app/create-new-trip/_components/ChatBox";
 import { api } from '@/convex/_generated/api';
+import { getPlacePhoto } from "@/hooks/use-place-photo";
+import { useQuery } from 'convex/react';
+import { BadgeDollarSign,Calendar,MapPin,Plane,Star,Ticket,Users,Wallet } from 'lucide-react';
 import Image from 'next/image';
-import { MapPin, Star, Ticket, Wallet, Calendar, Users, BadgeDollarSign, Plane } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import axios from 'axios';
+import { useEffect,useState } from 'react';
 
 export default function PrintTripPage() {
     const params = useParams();
     const tripId = params.tripId as string;
 
     const trip = useQuery(api.tripDetail.GetTrip, { tripId });
-    const [tripData, setTripData] = useState<any>(null);
-    const [images, setImages] = useState<Record<string, string>>({});
-    const [loadingImages, setLoadingImages] = useState(false);
+    const tripData = trip?.tripDetail as TripInfo | undefined;
+    const [photoState, setPhotoState] = useState<{ tripId: string; images: Record<string, string> }>();
+    const images = photoState?.tripId === tripId ? photoState.images : {};
+    const loadingImages = !!tripData && photoState?.tripId !== tripId;
 
-    // Wait for images to load before printing
     useEffect(() => {
-        if (trip && trip.tripDetail) {
-            setTripData(trip.tripDetail);
-        }
-    }, [trip]);
+        if (!tripData) return;
+        let subscribed = true;
+        const names = new Set([
+            ...tripData.hotels.map((hotel) => hotel.hotel_name),
+            ...tripData.itinerary.flatMap((day) => (day.activities ?? day.places ?? (Array.isArray(day.plan) ? day.plan : [])).map((place) => place.place_name))
+        ]);
+        void Promise.all([...names].map(async (name) => [name, await getPlacePhoto(name)] as const)).then((entries) => {
+            if (subscribed) setPhotoState({ tripId, images: Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => typeof entry[1] === "string")) });
+        });
+        return () => { subscribed = false; };
+    }, [tripData, tripId]);
 
-    // Fetch images for all places when tripData is available
-    useEffect(() => {
-        const fetchImages = async () => {
-            if (!tripData) return;
-
-            setLoadingImages(true);
-            const imagePromises: Promise<void>[] = [];
-            const newImages: Record<string, string> = {};
-
-            // Helper to fetch image
-            const fetchPlaceImage = async (placeName: string) => {
-                try {
-                    const result = await axios.post('/api/arcjet/google-place-detail', {
-                        placeName: placeName
-                    });
-                    if (result.data && !result.data.error) {
-                        newImages[placeName] = result.data;
-                    }
-                } catch (e) {
-                    console.error("Error fetching image for", placeName, e);
-                }
-            };
-
-            // Batch image fetching
-            const batchImages = async () => {
-                const batchSize = 3;
-                let promises: any[] = [];
-                let count = 0;
-
-                // Fetch hotel images
-                tripData.hotels?.forEach((hotel: any) => {
-                    if (hotel?.hotel_name) {
-                        promises.push(fetchPlaceImage(hotel.hotel_name));
-                        count++;
-                        if (count % batchSize === 0) {
-                            // Small delay after batch
-                            promises.push(new Promise(resolve => setTimeout(resolve, 500)));
-                        }
-                    }
-                });
-
-                // Fetch itinerary images
-                tripData.itinerary?.forEach((day: any) => {
-                    // Filter valid activities (skip string plans)
-                    let items = [];
-                    if (day.activities) items = day.activities;
-                    else if (day.places) items = day.places;
-                    else if (typeof day.plan === 'object' && Array.isArray(day.plan)) {
-                        items = day.plan;
-                    } else {
-                        // Use plan if it is NOT a string.
-                        // If day.plan is a string, we skip it as an activity list.
-                        // (Unlike previous code which forced [day.plan])
-                        if (typeof day.plan !== 'string') {
-                            items = [day.plan];
-                        }
-                    }
-
-                    items?.forEach((activity: any) => {
-                        const name = typeof activity === 'string' ? activity : activity.place_name;
-                        if (name) {
-                            promises.push(fetchPlaceImage(name));
-                            count++;
-                            if (count % batchSize === 0) {
-                                // Small delay after batch
-                                promises.push(new Promise(resolve => setTimeout(resolve, 500)));
-                            }
-                        }
-                    });
-                });
-
-                await Promise.all(promises);
-                setImages(newImages);
-                setLoadingImages(false);
-            };
-
-            batchImages();
-        };
-
-        if (tripData && !loadingImages && Object.keys(images).length === 0) {
-            fetchImages();
-        }
-    }, [tripData]);
-
+    if (trip === null) return <main className="page-shell">Trip not found.</main>;
 
     if (!tripData) {
         return (
@@ -120,7 +46,7 @@ export default function PrintTripPage() {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen">
+        <div className="bg-gray-50 text-gray-900 min-h-screen [color-scheme:light]">
             {/* Print Controls - Hidden when printing */}
             <div className="fixed top-0 left-0 right-0 p-4 bg-white border-b border-gray-200 shadow-sm flex justify-between items-center print:hidden z-50">
                 <div className="flex items-center gap-2">
@@ -207,7 +133,7 @@ export default function PrintTripPage() {
                     </h2>
 
                     <div className="grid grid-cols-2 gap-6">
-                        {tripData.hotels?.map((hotel: any, index: number) => {
+                        {tripData.hotels?.map((hotel, index) => {
                             const imageUrl = images[hotel.hotel_name] || hotel.hotel_image_url || '/placeholder.jpg';
                             return (
                                 <div key={index} className="border border-gray-200 rounded-xl overflow-hidden break-inside-avoid">
@@ -219,6 +145,7 @@ export default function PrintTripPage() {
                                             className="object-cover"
                                             unoptimized // Force simple img tag for print reliability
                                         />
+                                                        {images[hotel.hotel_name] && <PhotoCredit placeName={hotel.hotel_name} />}
                                     </div>
                                     <div className="p-4">
                                         <h3 className="font-bold text-lg mb-1">{hotel.hotel_name}</h3>
@@ -253,8 +180,8 @@ export default function PrintTripPage() {
                     </h2>
 
                     <div className="space-y-8">
-                        {tripData.itinerary?.map((day: any, index: number) => {
-                            const activities = day.activities || day.places || (Array.isArray(day.plan) ? day.plan : [day.plan]);
+                        {tripData.itinerary?.map((day, index) => {
+                            const activities = day.activities || day.places || (Array.isArray(day.plan) ? day.plan : []);
                             return (
                                 <div key={index} className="break-inside-avoid mb-8">
                                     <h3 className="text-xl font-bold mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
@@ -263,12 +190,12 @@ export default function PrintTripPage() {
 
                                     {typeof day.plan === 'string' && (
                                         <p className="mb-4 text-gray-700 italic border-l-4 border-blue-200 pl-4 py-1">
-                                            "{day.plan}"
+                                            &ldquo;{day.plan}&rdquo;
                                         </p>
                                     )}
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
-                                        {activities?.map((activity: any, actIndex: number) => {
+                                        {activities?.map((activity, actIndex) => {
                                             const placeName = typeof activity === 'string' ? activity : activity.place_name;
                                             const imageUrl = images[placeName] || activity.place_image_url || '/placeholder.jpg';
 
@@ -282,6 +209,7 @@ export default function PrintTripPage() {
                                                             className="object-cover"
                                                             unoptimized
                                                         />
+                                                        {images[placeName] && <PhotoCredit placeName={placeName} />}
                                                     </div>
                                                     <div>
                                                         <div className="flex items-baseline justify-between">

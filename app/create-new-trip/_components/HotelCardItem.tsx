@@ -1,8 +1,9 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { ExternalLink, Star, MapPin, BadgeDollarSign } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios';
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import { usePlacePhoto } from "@/hooks/use-place-photo";
+import { BadgeDollarSign,ExternalLink,MapPin,Star } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 import TripItemModal from './TripItemModal';
 
 export interface Hotel {
@@ -25,28 +26,13 @@ type Props = {
 
 function HotelCardItem({ hotel }: Props) {
 
-    const [photoUrl, setPhotoUrl] = useState<string>();
-    useEffect(() => {
-        hotel && GetGooglePlaceDetail();
-    }, [hotel])
-
-    const GetGooglePlaceDetail = async () => {
-        const result = await axios.post('/api/arcjet/google-place-detail', {
-            placeName: hotel?.hotel_name
-        });
-
-        if (result?.data?.error) {
-            return;
-        }
-
-        setPhotoUrl(result?.data);
-    }
+    const photoUrl = usePlacePhoto(hotel.hotel_name);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <>
-            <div className='group relative rounded-3xl overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 hover:border-purple-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block' onClick={() => setIsModalOpen(true)}>
+            <div className='group relative rounded-3xl overflow-hidden bg-card border border-white/10 hover:border-purple-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500 flex flex-col h-full cursor-pointer print:bg-transparent print:border-gray-200 print:shadow-none print:h-auto print:block' onClick={() => setIsModalOpen(true)}>
 
                 {/* Image Section */}
                 <div className='relative h-[240px] w-full overflow-hidden'>
@@ -55,12 +41,13 @@ function HotelCardItem({ hotel }: Props) {
                         alt={hotel?.hotel_name || 'Hotel Image'}
                         fill
                         className='object-cover transition-transform duration-700 group-hover:scale-110'
-                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     />
+                    <PhotoCredit placeName={hotel.hotel_name} />
                     <div className='absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent print:hidden' />
 
                     {/* Floating Rating */}
-                    <div className='absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full flex items-center gap-1 print:bg-white print:border-gray-200'>
+                    <div className='absolute top-4 right-4 bg-black/50 border border-white/10 px-3 py-1 rounded-full flex items-center gap-1 print:bg-white print:border-gray-200'>
                         <Star className='w-3.5 h-3.5 text-yellow-400 fill-yellow-400' />
                         <span className='text-xs font-semibold text-white print:text-black'>{hotel?.rating}</span>
                     </div>
@@ -87,7 +74,7 @@ function HotelCardItem({ hotel }: Props) {
                         {/* Stop propagation to prevent modal opening when clicking View on Map */}
                         <div onClick={(e) => e.stopPropagation()}>
                             <Link href={`https://www.google.com/maps/search/?api=1&query=${hotel?.hotel_name},${hotel?.hotel_address}`} target='_blank' className='block'>
-                                <button className='w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white text-sm font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:bg-linear-to-r group-hover:from-purple-600/80 group-hover:to-fuchsia-600/80 group-hover:border-transparent'>
+                                <button className='w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white text-sm font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:bg-linear-to-r group-hover:from-purple-600/80 group-hover:to-violet-600/80 group-hover:border-transparent'>
                                     View on Map <ExternalLink className='h-3.5 w-3.5' />
                                 </button>
                             </Link>
@@ -96,7 +83,7 @@ function HotelCardItem({ hotel }: Props) {
                 </div>
             </div>
 
-            <TripItemModal
+            {isModalOpen && <TripItemModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 item={{
@@ -111,7 +98,7 @@ function HotelCardItem({ hotel }: Props) {
                     context: 'Recommended Hotel',
                     geo_coordinates: hotel?.geo_coordinates
                 }}
-            />
+            />}
         </>
     )
 }

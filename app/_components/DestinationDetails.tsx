@@ -1,21 +1,40 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { AnimatePresence,m } from "motion/react";
 
 export default function DestinationDetails({
   destination,
   onClose,
 }: {
-  destination: any;
+  destination: (typeof import("./destinations").destinations)[number] | null;
   onClose: () => void;
 }) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!destination) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "Tab") { event.preventDefault(); closeButton.current?.focus(); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+  }, [destination, onClose]);
   return (
     <AnimatePresence>
       {destination && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -24,7 +43,10 @@ export default function DestinationDetails({
           />
 
           {/* Slide Panel */}
-          <motion.div
+          <m.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="destination-detail-title"
             initial={{ x: 500 }}
             animate={{ x: 0 }}
             exit={{ x: 500 }}
@@ -42,6 +64,8 @@ export default function DestinationDetails({
           >
             {/* Close Button */}
             <button
+              ref={closeButton}
+              aria-label="Close destination details"
               onClick={onClose}
               className="
                 absolute top-20 right-8
@@ -53,7 +77,7 @@ export default function DestinationDetails({
               <X size={22} />
             </button>
 
-            <h2 className="text-4xl font-bold mb-6 text-white">
+            <h2 id="destination-detail-title" className="text-4xl font-bold mb-6 text-white">
               {destination.title}
             </h2>
 
@@ -85,7 +109,7 @@ export default function DestinationDetails({
                 ))}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>

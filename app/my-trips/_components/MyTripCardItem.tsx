@@ -1,22 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { TripInfo } from '../../create-new-trip/_components/ChatBox'
-import Image from 'next/image'
-import Link from 'next/link'
-import axios from 'axios'
+import { PhotoCredit } from "@/components/ui/photo-credit";
+import { usePlacePhoto } from "@/hooks/use-place-photo";
+import Image from 'next/image';
+import Link from 'next/link';
+import { TripInfo } from '../../create-new-trip/_components/ChatBox';
 
 function MyTripCardItem({ trip }: { trip: { tripDetail: TripInfo, tripId: string } }) {
-    const [photoUrl, setPhotoUrl] = useState<string>();
-
-    useEffect(() => {
-        trip && GetGooglePlaceDetail();
-    }, [trip])
-
-    const GetGooglePlaceDetail = async () => {
-        const result = await axios.post('/api/arcjet/google-place-detail', {
-            placeName: trip?.tripDetail?.destination
-        });
-        setPhotoUrl(result?.data);
-    }
+    const photoUrl = usePlacePhoto(trip.tripDetail.destination);
 
     return (
         <Link href={'/view-trip/' + trip?.tripId}>
@@ -27,6 +16,7 @@ function MyTripCardItem({ trip }: { trip: { tripDetail: TripInfo, tripId: string
                     height={720}
                     className='rounded-xl object-cover w-full h-[220px]'
                 />
+                    <PhotoCredit linked={false} placeName={trip.tripDetail.destination} />
                 <div>
                     <h2 className='font-bold text-lg'>{trip?.tripDetail?.destination}</h2>
                     <h2 className='text-sm text-gray-500'>{trip?.tripDetail?.duration} Days trip with {trip?.tripDetail?.budget} Budget</h2>
